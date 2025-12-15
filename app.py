@@ -5,7 +5,7 @@ import io
 
 app = Flask(__name__)
 
-FREE_LIMIT = 3
+FREE_LIMIT = 999
 COOKIE_NAME = "proposal60_free_used"
 
 
