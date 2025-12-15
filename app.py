@@ -9,28 +9,6 @@ app = Flask(__name__)
 FREE_LIMIT = 3
 COOKIE_NAME = "proposal60_free_used"
 
-@app.get("/__debug_templates")
-def debug_templates():
-    from pathlib import Path
-
-    templates_dir = Path(app.root_path) / "templates"
-    files = sorted([p.name for p in templates_dir.glob("*.html")])
-    return {
-        "templates_dir": str(templates_dir),
-        "files": files
-    }
-
-@app.get("/__debug_home")
-def debug_home():
-    from pathlib import Path
-
-    p = Path(app.root_path) / "templates" / "home.html"
-    text = p.read_text(encoding="utf-8", errors="replace")
-
-    # Show only the first part (enough to see the marker)
-    safe = text[:2500].replace("<", "&lt;")
-    return "<pre>" + safe + "</pre>"
-
 
 @app.get("/")
 def home():
