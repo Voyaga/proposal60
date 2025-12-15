@@ -16,17 +16,7 @@ def home():
 
 @app.get("/upgrade")
 def upgrade():
-    # Simple placeholder page for now (no Stripe yet)
-    return """
-    <html><head><title>Upgrade</title><meta charset="utf-8"/></head>
-    <body style="font-family:Arial,sans-serif;background:#0b0b10;color:#eaeaf2;margin:0;">
-      <div style="max-width:820px;margin:40px auto;padding:24px;background:#141424;border-radius:12px;">
-        <h1 style="margin-top:0;">Upgrade to Pro</h1>
-        <p>Payments aren’t wired yet. This is the next step.</p>
-        <p><a href="/" style="color:#9bd;">Back</a></p>
-      </div>
-    </body></html>
-    """
+    return render_template("upgrade.html")
 
 
 @app.post("/generate")
