@@ -20,6 +20,17 @@ def debug_templates():
         "files": files
     }
 
+@app.get("/__debug_home")
+def debug_home():
+    from pathlib import Path
+
+    p = Path(app.root_path) / "templates" / "home.html"
+    text = p.read_text(encoding="utf-8", errors="replace")
+
+    # Show only the first part (enough to see the marker)
+    safe = text[:2500].replace("<", "&lt;")
+    return "<pre>" + safe + "</pre>"
+
 
 @app.get("/")
 def home():
