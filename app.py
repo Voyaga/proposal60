@@ -6,7 +6,7 @@ from proposal_builder import build_proposal_text
 import os
 
 app = Flask(__name__)
-FREE_LIMIT = 3
+FREE_LIMIT = 999
 COOKIE_NAME = "proposal60_free_used"
 
 
