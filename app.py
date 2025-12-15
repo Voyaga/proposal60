@@ -9,6 +9,18 @@ app = Flask(__name__)
 FREE_LIMIT = 3
 COOKIE_NAME = "proposal60_free_used"
 
+@app.get("/__debug_templates")
+def debug_templates():
+    from pathlib import Path
+
+    templates_dir = Path(app.root_path) / "templates"
+    files = sorted([p.name for p in templates_dir.glob("*.html")])
+    return {
+        "templates_dir": str(templates_dir),
+        "files": files
+    }
+
+
 @app.get("/")
 def home():
     return render_template("home.html")
