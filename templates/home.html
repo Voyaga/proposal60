@@ -35,17 +35,26 @@
 
       <button id="generateBtn" type="submit">Generate Proposal →</button>
 
-      <p class="fineprint">Tip: keep scope as short bullet notes for the best results.</p>
+      <p class="fineprint">
+        Tip: keep scope as short bullet notes for the best results.
+      </p>
     </form>
   </div>
 
   <script>
-    // Simple loading state (prevents double submits)
     const form = document.getElementById("proposalForm");
     const btn = document.getElementById("generateBtn");
+
+    // Loading state on submit
     form.addEventListener("submit", () => {
       btn.disabled = true;
       btn.textContent = "Generating…";
+    });
+
+    // Fix back-button / bfcache restore
+    window.addEventListener("pageshow", () => {
+      btn.disabled = false;
+      btn.textContent = "Generate Proposal →";
     });
   </script>
 </body>

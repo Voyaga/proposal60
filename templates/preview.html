@@ -11,16 +11,24 @@
 
     {% set blocked = blocked | default(false) %}
     {% set remaining = remaining | default(0) %}
+    {% set block_reason = block_reason | default("free") %}
 
     {% if blocked %}
       <div class="notice">
-        <strong>You’ve reached the free limit.</strong><br>
-        Your 3 free proposals have been used.<br>
-        Upgrade to keep creating proposals in seconds.
+        {% if block_reason == "rate" %}
+          <strong>Too many requests.</strong><br>
+          Please wait a minute and try again.
+        {% else %}
+          <strong>You’ve reached the free limit.</strong><br>
+          Your 3 free proposals have been used.<br>
+          Upgrade to keep creating proposals in seconds.
+        {% endif %}
       </div>
 
       <div class="actions">
-        <a class="btn" href="/upgrade">Upgrade to Pro</a>
+        {% if block_reason != "rate" %}
+          <a class="btn" href="/upgrade">Upgrade to Pro</a>
+        {% endif %}
         <a class="link" href="/">Back</a>
       </div>
 
