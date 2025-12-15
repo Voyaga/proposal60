@@ -8,13 +8,10 @@
 <body>
   <div class="wrap">
     <h1>Send a professional proposal in 60 seconds.</h1>
-    <p style="opacity:.85; margin-top:8px;">
-      Clear, client-ready proposals. No fluff. No admin.
-    </p>
+    <p class="subhead">Clear, client-ready proposals. No fluff. No admin.</p>
 
-
-    <form method="POST" action="/generate">
-      <label>Your business name </label>
+    <form id="proposalForm" method="POST" action="/generate">
+      <label>Your business name</label>
       <input name="your_business" placeholder="e.g., Neo Electrical" />
 
       <label>Client name *</label>
@@ -36,8 +33,20 @@
         <option>Direct</option>
       </select>
 
-      <button type="submit">Generate Proposal →</button>
+      <button id="generateBtn" type="submit">Generate Proposal →</button>
+
+      <p class="fineprint">Tip: keep scope as short bullet notes for the best results.</p>
     </form>
   </div>
+
+  <script>
+    // Simple loading state (prevents double submits)
+    const form = document.getElementById("proposalForm");
+    const btn = document.getElementById("generateBtn");
+    form.addEventListener("submit", () => {
+      btn.disabled = true;
+      btn.textContent = "Generating…";
+    });
+  </script>
 </body>
 </html>

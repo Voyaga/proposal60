@@ -14,29 +14,38 @@
 
     {% if blocked %}
       <div class="notice">
-        <strong>Free limit reached.</strong><br>
-        You’ve used your 3 free proposals.<br>
-        Upgrade to keep generating proposals.
+        <strong>You’ve reached the free limit.</strong><br>
+        Your 3 free proposals have been used.<br>
+        Upgrade to keep creating proposals in seconds.
       </div>
+
+      <div class="actions">
+        <a class="btn" href="/upgrade">Upgrade to Pro</a>
+        <a class="link" href="/">Back</a>
+      </div>
+
     {% else %}
       <div class="notice">
         <strong>Free proposals remaining:</strong> {{ remaining }}
       </div>
+
+      <p class="helper">
+        Review before sending — you can copy or edit as needed.
+      </p>
+
+      <div class="actions">
+        <button class="btn" onclick="copyText()">Copy Proposal</button>
+
+        <form method="POST" action="/pdf" style="margin:0;">
+          <textarea name="proposal_text" style="display:none;">{{ proposal_text }}</textarea>
+          <button class="btn secondary" type="submit">Download PDF</button>
+        </form>
+
+        <a class="link" href="/">Back</a>
+      </div>
+
+      <pre id="proposal">{{ proposal_text }}</pre>
     {% endif %}
-
-    <p style="opacity:.8; margin-bottom:12px;">
-      Review before sending — you can copy or edit as needed.
-    </p>
-
-    <div class="actions">
-      {% if not blocked %}
-        <button onclick="copyText()">Copy Proposal</button>
-
-      {% endif %}
-      <a href="/">Back</a>
-    </div>
-
-    <pre id="proposal">{{ proposal_text }}</pre>
   </div>
 
 <script>

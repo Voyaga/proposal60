@@ -1,12 +1,11 @@
-# app.py
-
-from flask import Flask, render_template, request, make_response
-import json
+from flask import Flask, render_template, request, make_response, send_file
 from proposal_builder import build_proposal_text
 import os
+import io
 
 app = Flask(__name__)
-FREE_LIMIT = 999
+
+FREE_LIMIT = 3
 COOKIE_NAME = "proposal60_free_used"
 
 
@@ -14,25 +13,34 @@ COOKIE_NAME = "proposal60_free_used"
 def home():
     return render_template("home.html")
 
+
+@app.get("/upgrade")
+def upgrade():
+    # Simple placeholder page for now (no Stripe yet)
+    return """
+    <html><head><title>Upgrade</title><meta charset="utf-8"/></head>
+    <body style="font-family:Arial,sans-serif;background:#0b0b10;color:#eaeaf2;margin:0;">
+      <div style="max-width:820px;margin:40px auto;padding:24px;background:#141424;border-radius:12px;">
+        <h1 style="margin-top:0;">Upgrade to Pro</h1>
+        <p>Payments aren’t wired yet. This is the next step.</p>
+        <p><a href="/" style="color:#9bd;">Back</a></p>
+      </div>
+    </body></html>
+    """
+
+
 @app.post("/generate")
 def generate():
-    # Read how many free proposals this browser has used
     used_raw = request.cookies.get(COOKIE_NAME, "0")
     try:
         used = int(used_raw)
     except ValueError:
         used = 0
 
-    # If over limit, show a clean block message
     if used >= FREE_LIMIT:
         return render_template(
             "preview.html",
-            proposal_text=(
-                "Free limit reached.\n\n"
-                "You’ve used your 3 free proposals.\n"
-                "To generate more, please upgrade."
-            ),
-            data={},
+            proposal_text="",
             blocked=True,
             remaining=0
         )
@@ -48,22 +56,77 @@ def generate():
 
     proposal_text = build_proposal_text(data)
 
-    # Increment usage count only when we attempted a generation
     used += 1
     remaining = max(FREE_LIMIT - used, 0)
 
     resp = make_response(render_template(
         "preview.html",
         proposal_text=proposal_text,
-        data=data,
         blocked=False,
         remaining=remaining
     ))
-    resp.set_cookie(COOKIE_NAME, str(used), max_age=60 * 60 * 24 * 365)  # 1 year
+    resp.set_cookie(COOKIE_NAME, str(used), max_age=60 * 60 * 24 * 365)
     return resp
+
+
+@app.post("/pdf")
+def pdf():
+    # Generates a PDF from the proposal text sent from preview.html
+    proposal_text = request.form.get("proposal_text", "").strip()
+    if not proposal_text:
+        # fallback
+        proposal_text = "No proposal text provided."
+
+    # Lazy import so local dev doesn't break if reportlab missing
+    from reportlab.pdfgen import canvas
+    from reportlab.lib.pagesizes import LETTER
+
+    buffer = io.BytesIO()
+    c = canvas.Canvas(buffer, pagesize=LETTER)
+
+    width, height = LETTER
+    x = 50
+    y = height - 60
+    line_height = 14
+
+    c.setFont("Courier", 11)
+    c.drawString(x, y, "Proposal")
+    y -= 22
+
+    # simple line wrap
+    def wrap_line(s, max_len=95):
+        out = []
+        while len(s) > max_len:
+            cut = s.rfind(" ", 0, max_len)
+            if cut == -1:
+                cut = max_len
+            out.append(s[:cut].rstrip())
+            s = s[cut:].lstrip()
+        out.append(s)
+        return out
+
+    for raw in proposal_text.splitlines():
+        lines = wrap_line(raw)
+        for ln in lines:
+            if y < 60:
+                c.showPage()
+                c.setFont("Courier", 11)
+                y = height - 60
+            c.drawString(x, y, ln)
+            y -= line_height
+
+    c.showPage()
+    c.save()
+
+    buffer.seek(0)
+    return send_file(
+        buffer,
+        mimetype="application/pdf",
+        as_attachment=True,
+        download_name="proposal.pdf"
+    )
 
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port, debug=False)
-
