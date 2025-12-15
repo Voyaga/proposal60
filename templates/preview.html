@@ -9,13 +9,29 @@
   <div class="wrap">
     <h1>Proposal Preview</h1>
 
+    {% set blocked = blocked | default(false) %}
+    {% set remaining = remaining | default(0) %}
+
+    {% if blocked %}
+      <div class="notice">
+        <strong>Free limit reached.</strong><br>
+        You’ve used your 3 free proposals.<br>
+        Upgrade to keep generating proposals.
+      </div>
+    {% else %}
+      <div class="notice">
+        <strong>Free proposals remaining:</strong> {{ remaining }}
+      </div>
+    {% endif %}
+
     <div class="actions">
-      <button onclick="copyText()">Copy</button>
+      {% if not blocked %}
+        <button onclick="copyText()">Copy</button>
+      {% endif %}
       <a href="/">Back</a>
     </div>
 
     <pre id="proposal">{{ proposal_text }}</pre>
-
   </div>
 
 <script>
