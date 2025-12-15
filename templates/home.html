@@ -1,0 +1,39 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>60-Second Proposal</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <div class="wrap">
+    <h1>Send a professional proposal in 60 seconds.</h1>
+
+    <form method="POST" action="/generate">
+      <label>Your business name</label>
+      <input name="your_business" placeholder="e.g., Neo Electrical" />
+
+      <label>Client name *</label>
+      <input name="client_name" required />
+
+      <label>Service type</label>
+      <input name="service_type" placeholder="e.g., Bathroom renovation" />
+
+      <label>Scope (bullet notes) *</label>
+      <textarea name="scope" rows="6" required placeholder="- Supply and install...&#10;- Remove old..."></textarea>
+
+      <label>Price</label>
+      <input name="price" placeholder="e.g., $2,450 incl GST" />
+
+      <label>Tone</label>
+      <select name="tone">
+        <option>Professional</option>
+        <option>Friendly</option>
+        <option>Direct</option>
+      </select>
+
+      <button type="submit">Generate Proposal</button>
+    </form>
+  </div>
+</body>
+</html>
