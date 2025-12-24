@@ -1,0 +1,188 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>60-Second Proposal</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <div class="wrap">
+
+    <div class="brand">
+      <div class="brand-mark">GTJ</div>
+      <div class="brand-text">
+        <div class="brand-name">Get The Job</div>
+        <div class="brand-tag">Client-ready proposals that help win the job.</div>
+      </div>
+    </div>
+
+    <h1>Send a professional proposal in 60 seconds.</h1>
+    <p class="subhead">Client-ready proposals, built for real work.</p>
+
+    <!-- =====================
+         Two-column layout
+    ====================== -->
+    <div class="layout">
+
+      <!-- Sidebar: Recent Proposals -->
+      <aside class="sidebar">
+        <h3>Recent proposals</h3>
+        <div id="proposalHistory"></div>
+      </aside>
+
+      <!-- Main: Proposal Form -->
+      <main class="main">
+        <form id="proposalForm" method="POST" action="/generate">
+
+          <label>Your business name</label>
+          <input name="your_business" placeholder="e.g., Neo Electrical" />
+
+          <label>Type of work / trade</label>
+          <select name="trade">
+            <option value="general">General Trade</option>
+            <option value="electrician">Electrician</option>
+            <option value="plumber">Plumber</option>
+            <option value="builder">Builder / Renovation</option>
+            <option value="hvac">HVAC</option>
+            <option value="cleaner">Cleaning</option>
+          </select>
+
+          <label>Client name *</label>
+          <input name="client_name" required />
+
+          <label>Service type</label>
+          <input name="service_type" placeholder="e.g., Bathroom renovation" />
+
+          <label>Scope (bullet notes) *</label>
+          <textarea
+            name="scope"
+            rows="6"
+            required
+            placeholder="- Supply and install...&#10;- Remove old..."></textarea>
+
+          <label>Price</label>
+          <input name="price" placeholder="e.g., $2,450 incl GST" />
+
+          <label>Tone</label>
+          <select name="tone">
+            <option>Professional</option>
+            <option>Friendly</option>
+            <option>Direct</option>
+          </select>
+
+          <label>ABN (optional)</label>
+          <input name="abn" />
+
+          <label>Phone (optional)</label>
+          <input name="phone" />
+
+          <label>Email (optional)</label>
+          <input name="email" />
+
+          <button id="generateBtn" class="btn" type="submit">
+            Generate Proposal →
+          </button>
+
+          <p class="fineprint">
+            Tip: keep scope as short bullet notes for the best results.
+          </p>
+        </form>
+      </main>
+
+    </div>
+  </div>
+
+<script>
+/* -------------------------
+   Layout styles (inline)
+------------------------- */
+const style = document.createElement("style");
+style.textContent = `
+  .layout {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    gap: 24px;
+    margin-top: 24px;
+  }
+
+  .sidebar {
+    background: #14171c;
+    border: 1px solid #2a2e36;
+    border-radius: 10px;
+    padding: 16px;
+    font-size: 14px;
+  }
+
+  .sidebar h3 {
+    margin-top: 0;
+    font-size: 14px;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+  }
+
+  @media (max-width: 900px) {
+    .layout {
+      grid-template-columns: 1fr;
+    }
+  }
+`;
+document.head.appendChild(style);
+
+/* -------------------------
+   Proposal History
+------------------------- */
+const HISTORY_KEY = "gtj_proposal_history";
+
+function loadHistory() {
+  try {
+    return JSON.parse(localStorage.getItem(HISTORY_KEY)) || [];
+  } catch {
+    return [];
+  }
+}
+
+function renderHistory() {
+  const container = document.getElementById("proposalHistory");
+  if (!container) return;
+
+  const history = loadHistory();
+
+  if (!history.length) {
+    container.innerHTML = `<p class="helper">No recent proposals.</p>`;
+    return;
+  }
+
+  container.innerHTML = `
+    <ul>
+      ${history.map((h, i) => `
+        <li style="margin-bottom:10px;">
+          <strong>${h.client}</strong><br>
+          <span style="opacity:.7">${h.service}</span><br>
+          <small>${new Date(h.createdAt).toLocaleDateString()}</small>
+        </li>
+      `).join("")}
+    </ul>
+  `;
+}
+
+document.addEventListener("DOMContentLoaded", renderHistory);
+
+/* -------------------------
+   Form UX
+------------------------- */
+const form = document.getElementById("proposalForm");
+const btn = document.getElementById("generateBtn");
+
+form.addEventListener("submit", () => {
+  btn.disabled = true;
+  btn.textContent = "Generating…";
+});
+
+window.addEventListener("pageshow", () => {
+  btn.disabled = false;
+  btn.textContent = "Generate Proposal →";
+});
+</script>
+
+</body>
+</html>

@@ -11,7 +11,6 @@ from itsdangerous import URLSafeSerializer, BadSignature
 app = Flask(__name__)
 
 # IMPORTANT: set this in Render env vars (SECRET_KEY)
-# If not set, it will fall back to a dev key (fine locally, not ideal in prod).
 app.secret_key = os.environ.get("SECRET_KEY", "dev-only-change-me")
 _signer = URLSafeSerializer(app.secret_key, salt="gtj-free-limit")
 
@@ -21,7 +20,6 @@ _signer = URLSafeSerializer(app.secret_key, salt="gtj-free-limit")
 # --------------------
 FREE_LIMIT = 3
 COOKIE_NAME = "proposal60_free_used"
-
 RATE_LIMIT_PER_MINUTE = 10
 
 # In-memory per-IP request timestamps
@@ -33,10 +31,9 @@ _ip_hits = defaultdict(deque)
 # --------------------
 def is_rate_limited(ip: str) -> bool:
     now = time.time()
-    window_start = now - 60  # 60 seconds
+    window_start = now - 60
     q = _ip_hits[ip]
 
-    # Remove old timestamps
     while q and q[0] < window_start:
         q.popleft()
 
@@ -48,32 +45,24 @@ def is_rate_limited(ip: str) -> bool:
 
 
 def get_used_count() -> int:
-    """
-    Read and verify the signed usage cookie.
-    If it's missing or tampered with, treat as 0.
-    """
     raw = request.cookies.get(COOKIE_NAME, "")
     if not raw:
         return 0
     try:
-        val = _signer.loads(raw)
-        return int(val)
+        return int(_signer.loads(raw))
     except (BadSignature, ValueError, TypeError):
         return 0
 
 
 def set_used_cookie(resp, used: int) -> None:
-    """
-    Write the signed usage cookie.
-    """
     token = _signer.dumps(str(used))
     resp.set_cookie(
         COOKIE_NAME,
         token,
-        max_age=60 * 60 * 24 * 365,   # 1 year
+        max_age=60 * 60 * 24 * 365,
         httponly=True,
         samesite="Lax",
-        secure=bool(os.environ.get("RENDER")),  # secure cookie on Render/https
+        secure=bool(os.environ.get("RENDER")),
     )
 
 
@@ -92,7 +81,7 @@ def upgrade():
 
 @app.post("/generate")
 def generate():
-    # ---- Rate limit (per IP) ----
+    # ---- Rate limit ----
     ip = request.headers.get("X-Forwarded-For", request.remote_addr) or "unknown"
     ip = ip.split(",")[0].strip()
 
@@ -105,9 +94,8 @@ def generate():
             block_reason="rate",
         ), 429
 
-    # ---- Free usage limit (signed cookie-based) ----
+    # ---- Free usage limit ----
     used = get_used_count()
-
     if used >= FREE_LIMIT:
         return render_template(
             "preview.html",
@@ -117,7 +105,7 @@ def generate():
             block_reason="free",
         )
 
-    # ---- Build proposal ----
+    # ---- Collect form data ----
     data = {
         "client_name": request.form.get("client_name", "").strip(),
         "service_type": request.form.get("service_type", "").strip(),
@@ -129,10 +117,27 @@ def generate():
         "abn": request.form.get("abn", "").strip(),
         "phone": request.form.get("phone", "").strip(),
         "email": request.form.get("email", "").strip(),
-
     }
 
+    # ---- Generate proposal body ----
     proposal_text = build_proposal_text(data)
+
+    # ---- Append footer (NO AI) ----
+    footer_lines = []
+
+    if data["abn"]:
+        footer_lines.append(f"ABN: {data['abn']}")
+    if data["phone"]:
+        footer_lines.append(f"Phone: {data['phone']}")
+    if data["email"]:
+        footer_lines.append(f"Email: {data['email']}")
+
+    if footer_lines:
+        proposal_text += (
+            "\n\n—\n"
+            "Business Details\n" +
+            "\n".join(footer_lines)
+        )
 
     # ---- Increment usage ----
     used += 1
@@ -192,10 +197,9 @@ def pdf():
             c.drawString(x, y, ln)
             y -= line_height
 
-    # NOTE: don't call c.showPage() here, or you'll often add a blank page.
     c.save()
-
     buffer.seek(0)
+
     return send_file(
         buffer,
         mimetype="application/pdf",
