@@ -7,10 +7,11 @@
 </head>
 <body>
   <div class="wrap">
+
     <div class="brand">
       <div class="brand-mark">GTJ</div>
       <div class="brand-text">
-        <div class="brand-name">Get The Job Buddy</div>
+        <div class="brand-name">Get The Job</div>
         <div class="brand-tag">Client-ready proposals that help win the job.</div>
       </div>
     </div>
@@ -19,74 +20,116 @@
     <p class="subhead">Client-ready proposals, built for real work.</p>
 
     <!-- =====================
-         Recent Proposals
+         Two-column layout
     ====================== -->
-    <div id="proposalHistory"></div>
+    <div class="layout">
 
-    <hr>
+      <!-- Sidebar: Recent Proposals -->
+      <aside class="sidebar">
+        <h3>Recent proposals</h3>
+        <div id="proposalHistory"></div>
+      </aside>
 
-    <!-- =====================
-         Proposal Form
-    ====================== -->
-    <form id="proposalForm" method="POST" action="/generate">
-      <label>Your business name</label>
-      <input name="your_business" placeholder="e.g., Neo Electrical" />
+      <!-- Main: Proposal Form -->
+      <main class="main">
+        <form id="proposalForm" method="POST" action="/generate">
 
-      <label>Type of work / trade</label>
-      <select name="trade">
-        <option value="general">General Trade</option>
-        <option value="electrician">Electrician</option>
-        <option value="plumber">Plumber</option>
-        <option value="builder">Builder / Renovation</option>
-        <option value="hvac">HVAC</option>
-        <option value="cleaner">Cleaning</option>
-      </select>
+          <label>Your business name</label>
+          <input name="your_business" placeholder="e.g., Neo Electrical" />
 
-      <label>Client name *</label>
-      <input name="client_name" required />
+          <label>Type of work / trade</label>
+          <select name="trade">
+            <option value="general">General Trade</option>
+            <option value="electrician">Electrician</option>
+            <option value="plumber">Plumber</option>
+            <option value="builder">Builder / Renovation</option>
+            <option value="hvac">HVAC</option>
+            <option value="cleaner">Cleaning</option>
+          </select>
 
-      <label>Service type</label>
-      <input name="service_type" placeholder="e.g., Bathroom renovation" />
+          <label>Client name *</label>
+          <input name="client_name" required />
 
-      <label>Scope (bullet notes) *</label>
-      <textarea
-        name="scope"
-        rows="6"
-        required
-        placeholder="- Supply and install...&#10;- Remove old..."></textarea>
+          <label>Service type</label>
+          <input name="service_type" placeholder="e.g., Bathroom renovation" />
 
-      <label>Price</label>
-      <input name="price" placeholder="e.g., $2,450 incl GST" />
+          <label>Scope (bullet notes) *</label>
+          <textarea
+            name="scope"
+            rows="6"
+            required
+            placeholder="- Supply and install...&#10;- Remove old..."></textarea>
 
-      <label>Tone</label>
-      <select name="tone">
-        <option>Professional</option>
-        <option>Friendly</option>
-        <option>Direct</option>
-      </select>
+          <label>Price</label>
+          <input name="price" placeholder="e.g., $2,450 incl GST" />
 
-      <label>ABN (optional)</label>
-      <input name="abn" placeholder="e.g., 12 345 678 901" />
+          <label>Tone</label>
+          <select name="tone">
+            <option>Professional</option>
+            <option>Friendly</option>
+            <option>Direct</option>
+          </select>
 
-      <label>Phone (optional)</label>
-      <input name="phone" placeholder="e.g., 0400 123 456" />
+          <label>ABN (optional)</label>
+          <input name="abn" />
 
-      <label>Email (optional)</label>
-      <input name="email" placeholder="e.g., info@business.com.au" />
+          <label>Phone (optional)</label>
+          <input name="phone" />
 
-      <button id="generateBtn" class="btn" type="submit">
-        Generate Proposal →
-      </button>
+          <label>Email (optional)</label>
+          <input name="email" />
 
-      <p class="fineprint">
-        Tip: keep scope as short bullet notes for the best results.
-      </p>
-    </form>
+          <button id="generateBtn" class="btn" type="submit">
+            Generate Proposal →
+          </button>
+
+          <p class="fineprint">
+            Tip: keep scope as short bullet notes for the best results.
+          </p>
+        </form>
+      </main>
+
+    </div>
   </div>
 
 <script>
 /* -------------------------
-   Proposal History (Home)
+   Layout styles (inline)
+------------------------- */
+const style = document.createElement("style");
+style.textContent = `
+  .layout {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    gap: 24px;
+    margin-top: 24px;
+  }
+
+  .sidebar {
+    background: #14171c;
+    border: 1px solid #2a2e36;
+    border-radius: 10px;
+    padding: 16px;
+    font-size: 14px;
+  }
+
+  .sidebar h3 {
+    margin-top: 0;
+    font-size: 14px;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+  }
+
+  @media (max-width: 900px) {
+    .layout {
+      grid-template-columns: 1fr;
+    }
+  }
+`;
+document.head.appendChild(style);
+
+/* -------------------------
+   Proposal History
 ------------------------- */
 const HISTORY_KEY = "gtj_proposal_history";
 
@@ -105,50 +148,21 @@ function renderHistory() {
   const history = loadHistory();
 
   if (!history.length) {
-    container.innerHTML = `
-      <p class="helper">
-        No recent proposals yet.
-      </p>
-    `;
+    container.innerHTML = `<p class="helper">No recent proposals.</p>`;
     return;
   }
 
   container.innerHTML = `
-    <h3>Recent proposals</h3>
     <ul>
       ${history.map((h, i) => `
-        <li style="margin-bottom:12px;">
-          <a href="#" onclick="openProposal(${i}); return false;">
-            ${h.client} – ${h.service}
-          </a>
-          <div style="font-size:12px;opacity:.7;">
-            ${new Date(h.createdAt).toLocaleString()}
-          </div>
+        <li style="margin-bottom:10px;">
+          <strong>${h.client}</strong><br>
+          <span style="opacity:.7">${h.service}</span><br>
+          <small>${new Date(h.createdAt).toLocaleDateString()}</small>
         </li>
       `).join("")}
     </ul>
   `;
-}
-
-function openProposal(index) {
-  const history = loadHistory();
-  const item = history[index];
-  if (!item) return;
-
-  // Open preview in a new tab with stored content
-  const w = window.open("", "_blank");
-  if (!w) return;
-
-  w.document.write(`
-    <pre style="
-      white-space:pre-wrap;
-      font-family:ui-monospace, monospace;
-      padding:24px;
-      max-width:900px;
-      margin:auto;
-    ">${item.text.replace(/</g,"&lt;")}</pre>
-  `);
-  w.document.close();
 }
 
 document.addEventListener("DOMContentLoaded", renderHistory);
@@ -169,7 +183,6 @@ window.addEventListener("pageshow", () => {
   btn.textContent = "Generate Proposal →";
 });
 </script>
-
 
 </body>
 </html>

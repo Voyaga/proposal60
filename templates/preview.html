@@ -52,7 +52,19 @@
         <a class="link" href="/">Back</a>
       </div>
 
+      <!-- Proposal body -->
       <pre id="proposal">{{ proposal_text }}</pre>
+
+      <!-- Optional footer (no AI required) -->
+      {% if request.form.get("abn") or request.form.get("phone") or request.form.get("email") %}
+        <hr>
+        <div class="helper">
+          {% if request.form.get("abn") %}ABN: {{ request.form.get("abn") }}<br>{% endif %}
+          {% if request.form.get("phone") %}Phone: {{ request.form.get("phone") }}<br>{% endif %}
+          {% if request.form.get("email") %}Email: {{ request.form.get("email") }}{% endif %}
+        </div>
+      {% endif %}
+
     {% endif %}
   </div>
 
@@ -93,7 +105,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   let history = loadHistory();
 
-  // remove duplicates
   history = history.filter(h => h.text !== text);
 
   history.unshift({
