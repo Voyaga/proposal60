@@ -5,7 +5,16 @@ import io
 import time
 from collections import defaultdict, deque
 
+from itsdangerous import URLSafeSerializer, BadSignature
+
+
 app = Flask(__name__)
+
+# IMPORTANT: set this in Render env vars (SECRET_KEY)
+# If not set, it will fall back to a dev key (fine locally, not ideal in prod).
+app.secret_key = os.environ.get("SECRET_KEY", "dev-only-change-me")
+_signer = URLSafeSerializer(app.secret_key, salt="gtj-free-limit")
+
 
 # --------------------
 # Config
@@ -38,6 +47,36 @@ def is_rate_limited(ip: str) -> bool:
     return False
 
 
+def get_used_count() -> int:
+    """
+    Read and verify the signed usage cookie.
+    If it's missing or tampered with, treat as 0.
+    """
+    raw = request.cookies.get(COOKIE_NAME, "")
+    if not raw:
+        return 0
+    try:
+        val = _signer.loads(raw)
+        return int(val)
+    except (BadSignature, ValueError, TypeError):
+        return 0
+
+
+def set_used_cookie(resp, used: int) -> None:
+    """
+    Write the signed usage cookie.
+    """
+    token = _signer.dumps(str(used))
+    resp.set_cookie(
+        COOKIE_NAME,
+        token,
+        max_age=60 * 60 * 24 * 365,   # 1 year
+        httponly=True,
+        samesite="Lax",
+        secure=bool(os.environ.get("RENDER")),  # secure cookie on Render/https
+    )
+
+
 # --------------------
 # Routes
 # --------------------
@@ -63,15 +102,11 @@ def generate():
             proposal_text="",
             blocked=True,
             remaining=0,
-            block_reason="rate"
+            block_reason="rate",
         ), 429
 
-    # ---- Free usage limit (cookie-based) ----
-    used_raw = request.cookies.get(COOKIE_NAME, "0")
-    try:
-        used = int(used_raw)
-    except ValueError:
-        used = 0
+    # ---- Free usage limit (signed cookie-based) ----
+    used = get_used_count()
 
     if used >= FREE_LIMIT:
         return render_template(
@@ -79,7 +114,7 @@ def generate():
             proposal_text="",
             blocked=True,
             remaining=0,
-            block_reason="free"
+            block_reason="free",
         )
 
     # ---- Build proposal ----
@@ -90,6 +125,11 @@ def generate():
         "price": request.form.get("price", "").strip(),
         "tone": request.form.get("tone", "Professional").strip(),
         "your_business": request.form.get("your_business", "").strip(),
+        "trade": request.form.get("trade", "general").strip().lower(),
+        "abn": request.form.get("abn", "").strip(),
+        "phone": request.form.get("phone", "").strip(),
+        "email": request.form.get("email", "").strip(),
+
     }
 
     proposal_text = build_proposal_text(data)
@@ -98,13 +138,15 @@ def generate():
     used += 1
     remaining = max(FREE_LIMIT - used, 0)
 
-    resp = make_response(render_template(
-        "preview.html",
-        proposal_text=proposal_text,
-        blocked=False,
-        remaining=remaining
-    ))
-    resp.set_cookie(COOKIE_NAME, str(used), max_age=60 * 60 * 24 * 365)
+    resp = make_response(
+        render_template(
+            "preview.html",
+            proposal_text=proposal_text,
+            blocked=False,
+            remaining=remaining,
+        )
+    )
+    set_used_cookie(resp, used)
 
     return resp
 
@@ -150,7 +192,7 @@ def pdf():
             c.drawString(x, y, ln)
             y -= line_height
 
-    c.showPage()
+    # NOTE: don't call c.showPage() here, or you'll often add a blank page.
     c.save()
 
     buffer.seek(0)
@@ -158,7 +200,7 @@ def pdf():
         buffer,
         mimetype="application/pdf",
         as_attachment=True,
-        download_name="proposal.pdf"
+        download_name="proposal.pdf",
     )
 
 
