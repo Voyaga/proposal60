@@ -2,10 +2,11 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>Preview</title>
+  <title>Proposal Preview</title>
   <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
+
   <div class="wrap">
     <h1>Proposal Preview</h1>
 
@@ -20,17 +21,11 @@
           Please wait a minute and try again.
         {% else %}
           <strong>You’ve reached the free limit.</strong><br>
-          Your 3 free proposals have been used.<br>
-          Upgrade to keep creating proposals in seconds.
+          Upgrade to continue.
         {% endif %}
       </div>
 
-      <div class="actions">
-        {% if block_reason != "rate" %}
-          <a class="btn" href="/upgrade">Upgrade to Pro</a>
-        {% endif %}
-        <a class="link" href="/">Back</a>
-      </div>
+      <a class="link" href="/">Back</a>
 
     {% else %}
       <div class="notice">
@@ -38,7 +33,7 @@
       </div>
 
       <p class="helper">
-        Review your proposal below. You can edit it if needed before sending.
+        Review and edit before sending.
       </p>
 
       <div class="actions">
@@ -46,24 +41,20 @@
           Edit proposal
         </button>
 
-        <button class="btn" onclick="copyText()">Copy Proposal</button>
+        <button class="btn" onclick="copyText()">Copy</button>
 
-        <form method="POST" action="/pdf" style="margin:0;">
-          <textarea
-            id="proposalHidden"
-            name="proposal_text"
-            style="display:none;"
-          >{{ proposal_text | e }}</textarea>
-
+        <form method="POST" action="/pdf">
+          <textarea id="proposalHidden" name="proposal_text" style="display:none;">
+{{ proposal_text | e }}
+          </textarea>
           <button class="btn secondary" type="submit" onclick="syncHidden()">
             Download PDF
           </button>
         </form>
 
-        <a class="link" href="/">Back</a>
+        <a class="link" href="/app">Back</a>
       </div>
 
-      <!-- Proposal (read-only by default) -->
       <textarea
         id="proposalEditor"
         class="proposal-editor locked"
@@ -75,14 +66,31 @@
   </div>
 
 <script>
-/* -------------------------
-   Edit mode
-------------------------- */
-function enableEdit() {
+const ACTIVE_KEY = "gtj_active_proposal";
+
+/* Load reused proposal */
+document.addEventListener("DOMContentLoaded", () => {
+  const stored = localStorage.getItem(ACTIVE_KEY);
+  if (!stored) return;
+
+  try {
+    const data = JSON.parse(stored);
+    const editor = document.getElementById("proposalEditor");
+
+    if (editor && data.text){
+      editor.value = data.text;
+      editor.classList.remove("locked");
+      editor.removeAttribute("readonly");
+    }
+
+    localStorage.removeItem(ACTIVE_KEY);
+  } catch {}
+});
+
+/* Edit mode */
+function enableEdit(){
   const editor = document.getElementById("proposalEditor");
   const btn = document.getElementById("editBtn");
-
-  if (!editor) return;
 
   editor.removeAttribute("readonly");
   editor.classList.remove("locked");
@@ -92,67 +100,19 @@ function enableEdit() {
   btn.disabled = true;
 }
 
-/* -------------------------
-   Helpers
-------------------------- */
-function getEditorText() {
-  const el = document.getElementById("proposalEditor");
-  return el ? el.value : "";
+/* Helpers */
+function getEditorText(){
+  return document.getElementById("proposalEditor").value;
 }
 
-function syncHidden() {
-  const hidden = document.getElementById("proposalHidden");
-  if (hidden) hidden.value = getEditorText();
+function syncHidden(){
+  document.getElementById("proposalHidden").value = getEditorText();
 }
 
-/* -------------------------
-   Copy
-------------------------- */
 function copyText(){
-  const text = getEditorText();
-  navigator.clipboard.writeText(text);
+  navigator.clipboard.writeText(getEditorText());
   alert("Copied.");
 }
-
-/* -------------------------
-   Proposal History SAVE
-------------------------- */
-const HISTORY_KEY = "gtj_proposal_history";
-const MAX_HISTORY = 5;
-
-function loadHistory() {
-  try {
-    return JSON.parse(localStorage.getItem(HISTORY_KEY)) || [];
-  } catch {
-    return [];
-  }
-}
-
-function saveHistory(history) {
-  localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-  const text = getEditorText().trim();
-  if (!text) return;
-
-  let history = loadHistory();
-
-  history = history.filter(h => h.text !== text);
-
-  history.unshift({
-    text,
-    client: "{{ request.form.get('client_name', 'Client') }}",
-    service: "{{ request.form.get('service_type', 'Service') }}",
-    createdAt: Date.now()
-  });
-
-  if (history.length > MAX_HISTORY) {
-    history = history.slice(0, MAX_HISTORY);
-  }
-
-  saveHistory(history);
-});
 </script>
 
 </body>

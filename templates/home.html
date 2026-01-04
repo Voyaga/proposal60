@@ -6,32 +6,33 @@
   <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
+
   <div class="wrap">
 
+    <!-- Brand -->
     <div class="brand">
       <div class="brand-mark">GTJ</div>
-      <div class="brand-text">
+      <div>
         <div class="brand-name">Get The Job</div>
         <div class="brand-tag">Client-ready proposals that help win the job.</div>
       </div>
     </div>
 
-    <h1>Send a professional proposal in 60 seconds.</h1>
-    <p class="subhead">Client-ready proposals, built for real work.</p>
-
-    <!-- =====================
-         Two-column layout
-    ====================== -->
+    <!-- Two-column layout -->
     <div class="layout">
 
-      <!-- Sidebar: Recent Proposals -->
+      <!-- LEFT: Recent proposals -->
       <aside class="sidebar">
-        <h3>Recent proposals</h3>
-        <div id="proposalHistory"></div>
+        <h2>Recent proposals</h2>
+        <p class="helper">Click a proposal to reuse it</p>
+        <ul id="recentList"></ul>
       </aside>
 
-      <!-- Main: Proposal Form -->
-      <main class="main">
+      <!-- RIGHT: Main form -->
+      <main class="content">
+        <h1>Send a professional proposal in 60 seconds.</h1>
+        <p class="subhead">Client-ready proposals, built for real work.</p>
+
         <form id="proposalForm" method="POST" action="/generate">
 
           <label>Your business name</label>
@@ -54,11 +55,8 @@
           <input name="service_type" placeholder="e.g., Bathroom renovation" />
 
           <label>Scope (bullet notes) *</label>
-          <textarea
-            name="scope"
-            rows="6"
-            required
-            placeholder="- Supply and install...&#10;- Remove old..."></textarea>
+          <textarea name="scope" rows="6" required
+            placeholder="- Supply and install&#10;- Remove old&#10;- Test on completion"></textarea>
 
           <label>Price</label>
           <input name="price" placeholder="e.g., $2,450 incl GST" />
@@ -70,21 +68,12 @@
             <option>Direct</option>
           </select>
 
-          <label>ABN (optional)</label>
-          <input name="abn" />
-
-          <label>Phone (optional)</label>
-          <input name="phone" />
-
-          <label>Email (optional)</label>
-          <input name="email" />
-
           <button id="generateBtn" class="btn" type="submit">
             Generate Proposal →
           </button>
 
-          <p class="fineprint">
-            Tip: keep scope as short bullet notes for the best results.
+          <p class="helper">
+            Tip: keep scope as short bullet notes for best results.
           </p>
         </form>
       </main>
@@ -93,47 +82,10 @@
   </div>
 
 <script>
-/* -------------------------
-   Layout styles (inline)
-------------------------- */
-const style = document.createElement("style");
-style.textContent = `
-  .layout {
-    display: grid;
-    grid-template-columns: 260px 1fr;
-    gap: 24px;
-    margin-top: 24px;
-  }
-
-  .sidebar {
-    background: #14171c;
-    border: 1px solid #2a2e36;
-    border-radius: 10px;
-    padding: 16px;
-    font-size: 14px;
-  }
-
-  .sidebar h3 {
-    margin-top: 0;
-    font-size: 14px;
-    letter-spacing: .06em;
-    text-transform: uppercase;
-  }
-
-  @media (max-width: 900px) {
-    .layout {
-      grid-template-columns: 1fr;
-    }
-  }
-`;
-document.head.appendChild(style);
-
-/* -------------------------
-   Proposal History
-------------------------- */
 const HISTORY_KEY = "gtj_proposal_history";
+const ACTIVE_KEY = "gtj_active_proposal";
 
-function loadHistory() {
+function loadHistory(){
   try {
     return JSON.parse(localStorage.getItem(HISTORY_KEY)) || [];
   } catch {
@@ -141,35 +93,39 @@ function loadHistory() {
   }
 }
 
-function renderHistory() {
-  const container = document.getElementById("proposalHistory");
-  if (!container) return;
+function renderRecent(){
+  const list = document.getElementById("recentList");
+  if (!list) return;
 
   const history = loadHistory();
 
-  if (!history.length) {
-    container.innerHTML = `<p class="helper">No recent proposals.</p>`;
+  if (!history.length){
+    list.innerHTML = "<li class='helper'>No recent proposals yet.</li>";
     return;
   }
 
-  container.innerHTML = `
-    <ul>
-      ${history.map((h, i) => `
-        <li style="margin-bottom:10px;">
-          <strong>${h.client}</strong><br>
-          <span style="opacity:.7">${h.service}</span><br>
-          <small>${new Date(h.createdAt).toLocaleDateString()}</small>
-        </li>
-      `).join("")}
-    </ul>
-  `;
+  list.innerHTML = "";
+
+  history.forEach(item => {
+    const li = document.createElement("li");
+    li.className = "recent-item";
+    li.innerHTML = `
+      <strong>${item.client}</strong><br>
+      <span>${item.service}</span>
+    `;
+
+    li.onclick = () => {
+      localStorage.setItem(ACTIVE_KEY, JSON.stringify(item));
+      window.location.href = "/preview";
+    };
+
+    list.appendChild(li);
+  });
 }
 
-document.addEventListener("DOMContentLoaded", renderHistory);
+document.addEventListener("DOMContentLoaded", renderRecent);
 
-/* -------------------------
-   Form UX
-------------------------- */
+// Loading state
 const form = document.getElementById("proposalForm");
 const btn = document.getElementById("generateBtn");
 
