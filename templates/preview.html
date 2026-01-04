@@ -38,33 +38,78 @@
       </div>
 
       <p class="helper">
-        Review before sending — you can copy or edit as needed.
+        Review your proposal below. You can edit it if needed before sending.
       </p>
 
       <div class="actions">
+        <button class="btn secondary" id="editBtn" onclick="enableEdit()">
+          Edit proposal
+        </button>
+
         <button class="btn" onclick="copyText()">Copy Proposal</button>
 
         <form method="POST" action="/pdf" style="margin:0;">
-          <textarea name="proposal_text" style="display:none;">{{ proposal_text | e }}</textarea>
-          <button class="btn secondary" type="submit">Download PDF</button>
+          <textarea
+            id="proposalHidden"
+            name="proposal_text"
+            style="display:none;"
+          >{{ proposal_text | e }}</textarea>
+
+          <button class="btn secondary" type="submit" onclick="syncHidden()">
+            Download PDF
+          </button>
         </form>
 
         <a class="link" href="/">Back</a>
       </div>
 
-      <!-- Proposal body -->
-      <pre id="proposal">{{ proposal_text }}</pre>
-
+      <!-- Proposal (read-only by default) -->
+      <textarea
+        id="proposalEditor"
+        class="proposal-editor locked"
+        rows="20"
+        readonly
+      >{{ proposal_text }}</textarea>
 
     {% endif %}
   </div>
 
 <script>
 /* -------------------------
+   Edit mode
+------------------------- */
+function enableEdit() {
+  const editor = document.getElementById("proposalEditor");
+  const btn = document.getElementById("editBtn");
+
+  if (!editor) return;
+
+  editor.removeAttribute("readonly");
+  editor.classList.remove("locked");
+  editor.focus();
+
+  btn.textContent = "Editing enabled";
+  btn.disabled = true;
+}
+
+/* -------------------------
+   Helpers
+------------------------- */
+function getEditorText() {
+  const el = document.getElementById("proposalEditor");
+  return el ? el.value : "";
+}
+
+function syncHidden() {
+  const hidden = document.getElementById("proposalHidden");
+  if (hidden) hidden.value = getEditorText();
+}
+
+/* -------------------------
    Copy
 ------------------------- */
 function copyText(){
-  const text = document.getElementById("proposal").innerText;
+  const text = getEditorText();
   navigator.clipboard.writeText(text);
   alert("Copied.");
 }
@@ -88,10 +133,7 @@ function saveHistory(history) {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  const pre = document.getElementById("proposal");
-  if (!pre) return;
-
-  const text = pre.innerText.trim();
+  const text = getEditorText().trim();
   if (!text) return;
 
   let history = loadHistory();

@@ -108,7 +108,7 @@ h1{
   line-height: 1.5;
 }
 
-/* Helper text (used in preview.html) */
+/* Helper text */
 .helper{
   margin: 10px 0 18px;
   color: var(--muted);
@@ -218,18 +218,6 @@ a.link:hover{
   text-decoration: underline;
 }
 
-/* Accessible focus */
-button:focus-visible,
-.btn:focus-visible,
-a.link:focus-visible,
-input:focus-visible,
-textarea:focus-visible,
-select:focus-visible{
-  outline: none;
-  box-shadow: 0 0 0 3px var(--accent-soft);
-  border-color: var(--accent);
-}
-
 /* Notices */
 .notice{
   padding: 14px 16px;
@@ -242,18 +230,7 @@ select:focus-visible{
   line-height: 1.45;
 }
 
-.notice strong{
-  display: inline-block;
-  margin-bottom: 4px;
-}
-
-/* Optional variants if you ever want them */
-.notice.danger{
-  border-left-color: var(--danger);
-  background: linear-gradient(180deg, rgba(239,68,68,.10), rgba(28,31,38,.9));
-}
-
-/* Actions row (preview.html uses this) */
+/* Actions row */
 .actions{
   display: flex;
   gap: 12px;
@@ -262,14 +239,13 @@ select:focus-visible{
   margin: 12px 0 14px;
 }
 
-/* Make the <form> inside .actions not act like a block and ruin spacing */
 .actions form{
   display: inline;
   margin: 0;
 }
 
-/* Proposal preview block */
-pre{
+/* Proposal editor (preview page) */
+.proposal-editor{
   margin-top: 14px;
   padding: 18px;
   background: var(--panel-3);
@@ -287,12 +263,61 @@ pre{
                "Liberation Mono", "Courier New", monospace;
 }
 
-/* Small utility (optional, harmless) */
-hr{
-  border: 0;
-  border-top: 1px solid var(--border);
-  margin: 18px 0;
-  opacity: .7;
+.proposal-editor.locked{
+  color: var(--muted);
+  cursor: not-allowed;
+}
+
+.proposal-editor:not(.locked){
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+/* Landing page – coloured mid-tone */
+body{
+  background: #1f2933;
+  color: #e5e7eb;
+}
+
+.wrap{
+  background: transparent;
+}
+
+.brand-mark{
+  background: linear-gradient(135deg, #38bdf8, #22c55e);
+  color: #0f172a;
+}
+
+.hero{
+  margin: 64px 0;
+  padding: 56px 48px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #243447, #1f3a4d);
+  border: 1px solid #334155;
+}
+
+.section{
+  margin: 56px 0;
+  padding: 36px;
+  background: #263646;
+  border-radius: 16px;
+  border: 1px solid #334155;
+}
+
+.step{
+  background: #2e4358;
+  border: 1px solid #3b556e;
+}
+
+.cta{
+  background: linear-gradient(135deg, #22c55e, #38bdf8);
+}
+
+.trust-note{
+  margin: 32px 0;
+  text-align: center;
+  font-size: .9rem;
+  color: #cbd5e1;
 }
 
 /* Mobile */
@@ -306,23 +331,7 @@ hr{
     font-size: 24px;
   }
 
-  .subhead{
-    font-size: 14px;
-  }
-
   .actions > *{
     width: 100%;
   }
-
-  button, .btn{
-    width: 100%;
-  }
-}
-
-.fineprint{
-  margin-top: 14px;
-  color: var(--muted);
-  font-size: 13px;
-  line-height: 1.5;
-  opacity: .95;
 }
