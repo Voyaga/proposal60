@@ -16,7 +16,7 @@ def generate_proposal_ai(data: dict) -> str:
     """
 
     if not os.environ.get("OPENAI_API_KEY"):
-        return "Server error: OPENAI_API_KEY not set."
+        raise RuntimeError("OPENAI_API_KEY not set")
 
     instructions = (
         "You write clear, professional proposals for Australian trade and service businesses. "
@@ -33,7 +33,7 @@ def generate_proposal_ai(data: dict) -> str:
 
     scope_notes = (data.get("scope") or "").strip()
     if not scope_notes:
-        return "Missing required fields: client name and scope."
+        raise ValueError("Missing required fields: scope")
 
     price = (data.get("price") or "").strip() or "To be confirmed"
     tone = (data.get("tone") or "Professional").strip()
@@ -66,12 +66,12 @@ Hard rules:
             model=MODEL,
             instructions=instructions,
             input=scope_prompt,
-            temperature=0.0,          # make scope deterministic
+            temperature=0.0,
             max_output_tokens=250
         )
         locked_scope = (scope_resp.output_text or "").strip()
     except Exception:
-        # Fallback: minimally sanitize user scope if AI pass fails
+        # Soft fallback for scope only
         locked_scope = "\n".join(
             f"- {ln.lstrip('- ').strip()}"
             for ln in scope_notes.splitlines()
@@ -120,7 +120,12 @@ Rules:
             temperature=0.3,
             max_output_tokens=900
         )
-        return (proposal_resp.output_text or "").strip()
+        text = (proposal_resp.output_text or "").strip()
+
+        if not text:
+            raise RuntimeError("Empty AI response")
+
+        return text
 
     except Exception as e:
-        return f"AI generation failed: {type(e).__name__}"
+        raise RuntimeError(f"AI generation failed: {type(e).__name__}") from e
