@@ -73,13 +73,9 @@ def set_used_cookie(resp, used: int) -> None:
 def landing():
     return render_template("landing.html")
 
+
 @app.get("/app")
-def home():
-    return render_template("home.html")
-
-
-@app.get("/")
-def home():
+def app_home():
     return render_template("home.html")
 
 
@@ -144,8 +140,8 @@ def generate():
     if footer_lines:
         proposal_text += (
             "\n\n—\n"
-            "Business Details\n" +
-            "\n".join(footer_lines)
+            "Business Details\n"
+            + "\n".join(footer_lines)
         )
 
     # ---- Increment usage ----
