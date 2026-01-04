@@ -78,6 +78,16 @@ def landing():
 def app_home():
     return render_template("home.html")
 
+@app.get("/preview")
+def preview():
+    return render_template(
+        "preview.html",
+        proposal_text="",
+        blocked=False,
+        remaining=0,
+    )
+
+
 
 @app.get("/upgrade")
 def upgrade():
