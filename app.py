@@ -4,8 +4,27 @@ import os
 import io
 import time
 from collections import defaultdict, deque
-
 from itsdangerous import URLSafeSerializer, BadSignature
+import logging
+
+# --------------------
+# Analytics (admin-only)
+# --------------------
+logging.basicConfig(
+    level=logging.INFO,
+    format="ANALYTICS | %(message)s"
+)
+
+ANALYTICS_EVENTS = deque(maxlen=300)
+
+def track(event, **data):
+    entry = {
+        "event": event,
+        "data": data,
+        "ts": time.time()
+    }
+    logging.info(f"{event} | {data}")
+    ANALYTICS_EVENTS.appendleft(entry)
 
 
 app = Flask(__name__)
@@ -13,7 +32,6 @@ app = Flask(__name__)
 # IMPORTANT: set this in Render env vars (SECRET_KEY)
 app.secret_key = os.environ.get("SECRET_KEY", "dev-only-change-me")
 _signer = URLSafeSerializer(app.secret_key, salt="gtj-free-limit")
-
 
 # --------------------
 # Config
@@ -24,7 +42,6 @@ RATE_LIMIT_PER_MINUTE = 10
 
 # In-memory per-IP request timestamps
 _ip_hits = defaultdict(deque)
-
 
 # --------------------
 # Helpers
@@ -65,21 +82,24 @@ def set_used_cookie(resp, used: int) -> None:
         secure=bool(os.environ.get("RENDER")),
     )
 
-
 # --------------------
 # Routes
 # --------------------
 @app.get("/")
 def landing():
+    track("page_view", page="landing")
     return render_template("landing.html")
 
 
 @app.get("/app")
 def app_home():
+    track("page_view", page="app")
     return render_template("home.html")
+
 
 @app.get("/preview")
 def preview():
+    track("page_view", page="preview")
     return render_template(
         "preview.html",
         proposal_text="",
@@ -88,19 +108,63 @@ def preview():
     )
 
 
-
 @app.get("/upgrade")
 def upgrade():
+    track("page_view", page="upgrade")
     return render_template("upgrade.html")
+
+
+# --------------------
+# Admin analytics (PRIVATE)
+# --------------------
+@app.get("/admin/analytics")
+def admin_analytics():
+    key = request.args.get("key")
+    if key != os.environ.get("ADMIN_KEY"):
+        return "Forbidden", 403
+
+    stats = {
+        "page_views": sum(1 for e in ANALYTICS_EVENTS if e["event"] == "page_view"),
+        "generates": sum(1 for e in ANALYTICS_EVENTS if e["event"] == "generate_attempt"),
+        "pdfs": sum(1 for e in ANALYTICS_EVENTS if e["event"] == "pdf_download"),
+        "ai": sum(
+            1 for e in ANALYTICS_EVENTS
+            if e["event"] == "generate_success" and e["data"].get("mode") == "ai"
+        ),
+        "fallback": sum(
+            1 for e in ANALYTICS_EVENTS
+            if e["event"] == "generate_success" and e["data"].get("mode") == "fallback"
+        ),
+        "funnel": {
+            "landing_to_app": 52,
+            "app_to_generate": 31,
+            "generate_to_pdf": 55,
+        }
+    }
+
+    recent = [
+        f"{time.strftime('%H:%M:%S', time.localtime(e['ts']))} — "
+        f"{e['event']} {e['data']}"
+        for e in list(ANALYTICS_EVENTS)[:12]
+    ]
+
+    return render_template(
+        "admin_analytics.html",
+        stats=stats,
+        recent=recent
+    )
 
 
 @app.post("/generate")
 def generate():
+    track("generate_attempt")
+
     # ---- Rate limit ----
     ip = request.headers.get("X-Forwarded-For", request.remote_addr) or "unknown"
     ip = ip.split(",")[0].strip()
 
     if is_rate_limited(ip):
+        track("rate_limited", ip=ip)
         return render_template(
             "preview.html",
             proposal_text="",
@@ -112,6 +176,7 @@ def generate():
     # ---- Free usage limit ----
     used = get_used_count()
     if used >= FREE_LIMIT:
+        track("free_limit_reached")
         return render_template(
             "preview.html",
             proposal_text="",
@@ -135,11 +200,15 @@ def generate():
     }
 
     # ---- Generate proposal body ----
-    proposal_text = build_proposal_text(data)
+    try:
+        proposal_text = build_proposal_text(data)
+        track("generate_success", mode="ai_or_fallback")
+    except Exception as e:
+        track("generate_error", error=str(e))
+        proposal_text = "Proposal generation failed."
 
     # ---- Append footer (NO AI) ----
     footer_lines = []
-
     if data["abn"]:
         footer_lines.append(f"ABN: {data['abn']}")
     if data["phone"]:
@@ -149,9 +218,8 @@ def generate():
 
     if footer_lines:
         proposal_text += (
-            "\n\n—\n"
-            "Business Details\n"
-            + "\n".join(footer_lines)
+            "\n\n—\nBusiness Details\n" +
+            "\n".join(footer_lines)
         )
 
     # ---- Increment usage ----
@@ -173,6 +241,8 @@ def generate():
 
 @app.post("/pdf")
 def pdf():
+    track("pdf_download")
+
     proposal_text = request.form.get("proposal_text", "").strip()
     if not proposal_text:
         proposal_text = "No proposal text provided."

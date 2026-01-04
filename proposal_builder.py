@@ -94,19 +94,78 @@ Avoid marketing or sales phrasing.
 
 
 def build_proposal_text(data: dict) -> str:
-    # Minimal validation (keep MVP fast)
-    if not data.get("client_name") or not data.get("scope"):
-        return "Missing required fields: client name and scope."
+    """
+    Primary proposal builder.
+    Uses AI if available, otherwise falls back to a clean template.
+    """
 
-    # Resolve trade profile
-    trade_key = data.get("trade", "general").lower()
-    trade_profile = TRADE_PROFILES.get(trade_key, TRADE_PROFILES["general"])
+    # Try AI first
+    try:
+        from ai_engine import generate_proposal_with_ai
+        return generate_proposal_with_ai(data)
 
-    # Inject trade profile into data for the AI engine
-    data_with_profile = {
-        **data,
-        "trade_profile": trade_profile
-    }
+    except Exception:
+        # AI unavailable → fallback template
+        return build_fallback_proposal(data)
 
-    # Always use AI for MVP
-    return generate_proposal_ai(data_with_profile)
+
+def build_fallback_proposal(data: dict) -> str:
+    """
+    Deterministic, non-AI proposal template.
+    This guarantees output even if AI fails.
+    """
+
+    client = data.get("client_name", "Client")
+    service = data.get("service_type", "the requested work")
+    scope = data.get("scope", "").strip()
+    price = data.get("price", "").strip()
+    business = data.get("your_business", "").strip()
+
+    lines = []
+
+    # Header
+    lines.append(f"Proposal for {client}")
+    lines.append("")
+    lines.append(f"Service: {service}")
+    lines.append("")
+
+    # Intro
+    if business:
+        lines.append(
+            f"Thank you for the opportunity to provide this proposal on behalf of {business}."
+        )
+    else:
+        lines.append(
+            "Thank you for the opportunity to provide this proposal."
+        )
+
+    lines.append("")
+
+    # Scope
+    lines.append("Scope of Works:")
+    if scope:
+        for line in scope.splitlines():
+            lines.append(f"- {line.lstrip('- ').strip()}")
+    else:
+        lines.append("- Details to be confirmed")
+
+    lines.append("")
+
+    # Price
+    if price:
+        lines.append(f"Price: {price}")
+        lines.append("")
+
+    # Closing
+    lines.append(
+        "Please review the details above and let us know if you have any questions "
+        "or would like to proceed."
+    )
+    lines.append("")
+    lines.append("Kind regards,")
+
+    if business:
+        lines.append(business)
+
+    return "\n".join(lines)
+

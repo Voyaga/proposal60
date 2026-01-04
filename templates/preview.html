@@ -2,9 +2,11 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>Proposal Preview</title>
+  <title>Proposal Preview — Get The Job</title>
+  <link rel="icon" href="/static/favicon.ico">
   <link rel="stylesheet" href="/static/style.css">
 </head>
+
 <body>
 
   <div class="wrap">
@@ -34,31 +36,52 @@
         Review and edit before sending.
       </p>
 
-      <div class="actions">
-        <button class="btn secondary" id="editBtn" onclick="enableEdit()">
-          Edit proposal
-        </button>
+      {% if not proposal_text %}
+        <!-- Empty state -->
+        <div class="notice">
+          <strong>No proposal loaded.</strong><br>
+          Create a proposal to preview, edit, or download.
+        </div>
 
-        <button class="btn" onclick="copyText()">Copy</button>
+        <a href="/app" class="btn">
+          Go to editor
+        </a>
 
-        <form method="POST" action="/pdf">
-          <textarea id="proposalHidden" name="proposal_text" style="display:none;">
-{{ proposal_text | e }}
-          </textarea>
-          <button class="btn secondary" type="submit" onclick="syncHidden()">
-            Download PDF
+      {% else %}
+        <!-- Actions -->
+        <div class="actions">
+          <button class="btn secondary" id="editBtn" onclick="enableEdit()">
+            Edit proposal
           </button>
-        </form>
-      </div>
 
-      <textarea
-        id="proposalEditor"
-        class="proposal-editor locked"
-        rows="20"
-        readonly
-      >{{ proposal_text }}</textarea>
+          <button class="btn" onclick="copyText()">Copy</button>
 
+          <form method="POST" action="/pdf">
+            <textarea id="proposalHidden" name="proposal_text" style="display:none;">
+{{ proposal_text | e }}
+            </textarea>
+            <button class="btn secondary" type="submit" onclick="syncHidden()">
+              Download PDF
+            </button>
+          </form>
+        </div>
+
+        <!-- Editor -->
+        <textarea
+          id="proposalEditor"
+          class="proposal-editor locked"
+          rows="20"
+          readonly
+        >{{ proposal_text }}</textarea>
+
+      {% endif %}
     {% endif %}
+
+    <!-- Footer -->
+    <footer class="site-footer">
+      © Get The Job
+    </footer>
+
   </div>
 
   <!-- Bottom-right back button -->
