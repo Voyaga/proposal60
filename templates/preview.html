@@ -25,8 +25,6 @@
         {% endif %}
       </div>
 
-      <a class="link" href="/">Back</a>
-
     {% else %}
       <div class="notice">
         <strong>Free proposals remaining:</strong> {{ remaining }}
@@ -51,8 +49,6 @@
             Download PDF
           </button>
         </form>
-
-        <a class="link" href="/app">Back</a>
       </div>
 
       <textarea
@@ -64,6 +60,11 @@
 
     {% endif %}
   </div>
+
+  <!-- Bottom-right back button -->
+  <a href="/app" class="btn secondary preview-back-btn">
+    ← Back to editor
+  </a>
 
 <script>
 const ACTIVE_KEY = "gtj_active_proposal";
@@ -79,9 +80,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (editor && data.text){
       editor.value = data.text;
-      // stay locked until user clicks Edit
+      // remain locked until Edit is clicked
     }
-
 
     localStorage.removeItem(ACTIVE_KEY);
   } catch {}
