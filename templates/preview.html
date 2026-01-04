@@ -126,7 +126,7 @@ function saveToHistory(text) {
     history = JSON.parse(localStorage.getItem(HISTORY_KEY)) || [];
   } catch {}
 
-  // de-duplicate
+  // de-duplicate by text only
   history = history.filter(h => h.text !== text);
 
   history.unshift({
@@ -142,6 +142,7 @@ function saveToHistory(text) {
 
   localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
 }
+
 
 /* Edit mode */
 function enableEdit(){
