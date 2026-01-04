@@ -3,41 +3,103 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Upgrade — Get The Job</title>
+  <title>Upgrade to Pro — Get The Job</title>
+  <meta name="description" content="Unlimited professional proposals and PDF exports." />
   <link rel="icon" href="/static/favicon.ico">
   <link rel="stylesheet" href="/static/style.css">
 </head>
 
 <body>
+
   <div class="wrap">
 
+    <!-- ===== Upgrade ===== -->
     <h1>Upgrade to Pro</h1>
-    <p class="subhead">Unlimited proposals. PDF export. Priority improvements.</p>
+    <p class="subhead">
+      Unlimited, client-ready proposals — without rewriting the same job again.
+    </p>
 
     <div class="notice">
-      <strong>Payments are coming next.</strong><br>
-      This button is here to validate demand before wiring Stripe.
+      <strong>Built for real work.</strong><br>
+      If this saves you one job a month, it pays for itself.
     </div>
 
-    <div class="actions">
-      <a class="btn" href="#" onclick="alert('Stripe coming next.'); return false;">
-        Upgrade (coming soon)
-      </a>
+    <div class="panel" style="text-align:center; max-width:520px; margin:0 auto 32px;">
+      <h2>Get The Job Pro</h2>
+
+      <div style="font-size:2.6rem; font-weight:900; margin:12px 0;">
+        $19
+        <span style="font-size:1rem; color:var(--muted);">/ month</span>
+      </div>
+
+      <p class="helper">Cancel anytime. No lock-in.</p>
+
+      <ul class="feature-list" style="text-align:left; max-width:360px; margin:0 auto 24px;">
+        <li>Unlimited proposals</li>
+        <li>PDF export</li>
+        <li>Edit before sending</li>
+        <li>Trade-appropriate wording</li>
+        <li>Priority improvements</li>
+      </ul>
+
+      <form method="POST" action="/checkout">
+        <button class="btn" style="width:100%;">
+          Upgrade to Pro
+        </button>
+      </form>
+
+      <p class="fineprint">
+        Secure checkout powered by Stripe
+      </p>
+    </div>
+
+    <!-- ===== Restore Pro ===== -->
+    <hr style="margin:48px 0; opacity:.25;">
+
+    <h2>Already upgraded?</h2>
+    <p class="helper">
+      Restore Pro access using the email you paid with.
+    </p>
+
+    {% if restore_error %}
+      <div class="notice">
+        {{ restore_error }}
+      </div>
+    {% endif %}
+
+    {% if restored %}
+      <div class="notice">
+        <strong>Pro access restored.</strong><br>
+        You’re all set.
+      </div>
+    {% endif %}
+
+    <form method="POST" action="/restore-pro" style="max-width:420px;">
+      <label>Email used at checkout</label>
+      <input
+        type="email"
+        name="email"
+        required
+        placeholder="you@example.com"
+      >
+
+      <button class="btn secondary" style="margin-top:14px;">
+        Restore Pro Access
+      </button>
+    </form>
+
+    <!-- ===== Back ===== -->
+    <div class="actions" style="justify-content:center; margin-top:40px;">
       <a class="btn secondary" href="/app">
         Back to editor
       </a>
     </div>
 
-    <p class="fineprint">
-      Want early access? Email:
-      <a class="link" href="mailto:voyagar1@gmail.com">voyagar1@gmail.com</a>
-    </p>
-
-    <!-- Footer -->
     <footer class="site-footer">
       © Get The Job
     </footer>
 
   </div>
+
 </body>
 </html>

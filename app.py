@@ -1,4 +1,11 @@
-from flask import Flask, render_template, request, make_response, send_file
+from flask import (
+    Flask,
+    render_template,
+    request,
+    make_response,
+    send_file,
+    redirect
+)
 from proposal_builder import build_proposal_text
 import os
 import io
@@ -6,6 +13,7 @@ import time
 from collections import defaultdict, deque
 from itsdangerous import URLSafeSerializer, BadSignature
 import logging
+import stripe
 
 # --------------------
 # Analytics (admin-only)
@@ -27,20 +35,28 @@ def track(event, **data):
     ANALYTICS_EVENTS.appendleft(entry)
 
 
+# --------------------
+# App init
+# --------------------
 app = Flask(__name__)
 
-# IMPORTANT: set this in Render env vars (SECRET_KEY)
 app.secret_key = os.environ.get("SECRET_KEY", "dev-only-change-me")
 _signer = URLSafeSerializer(app.secret_key, salt="gtj-free-limit")
 
 # --------------------
-# Config
+# Stripe config
+# --------------------
+stripe.api_key = os.environ.get("STRIPE_SECRET_KEY")
+STRIPE_PRICE_ID = os.environ.get("STRIPE_PRICE_ID")
+
+# --------------------
+# Limits & cookies
 # --------------------
 FREE_LIMIT = 3
 COOKIE_NAME = "proposal60_free_used"
-RATE_LIMIT_PER_MINUTE = 10
+PRO_COOKIE = "gtj_pro"
 
-# In-memory per-IP request timestamps
+RATE_LIMIT_PER_MINUTE = 10
 _ip_hits = defaultdict(deque)
 
 # --------------------
@@ -82,6 +98,21 @@ def set_used_cookie(resp, used: int) -> None:
         secure=bool(os.environ.get("RENDER")),
     )
 
+
+def is_pro_user() -> bool:
+    return request.cookies.get(PRO_COOKIE) == "1"
+
+
+def set_pro_cookie(resp):
+    resp.set_cookie(
+        PRO_COOKIE,
+        "1",
+        max_age=60 * 60 * 24 * 365,
+        httponly=True,
+        samesite="Lax",
+        secure=bool(os.environ.get("RENDER")),
+    )
+
 # --------------------
 # Routes
 # --------------------
@@ -111,7 +142,89 @@ def preview():
 @app.get("/upgrade")
 def upgrade():
     track("page_view", page="upgrade")
-    return render_template("upgrade.html")
+    return render_template(
+        "upgrade.html",
+        restore_error=None,
+        restored=False
+    )
+
+
+# --------------------
+# Stripe Checkout
+# --------------------
+@app.post("/checkout")
+def checkout():
+    session = stripe.checkout.Session.create(
+        mode="subscription",
+        payment_method_types=["card"],
+        line_items=[{
+            "price": STRIPE_PRICE_ID,
+            "quantity": 1,
+        }],
+        success_url=request.host_url + "upgrade/success",
+        cancel_url=request.host_url + "upgrade",
+    )
+
+    return redirect(session.url, code=303)
+
+
+@app.get("/upgrade/success")
+def upgrade_success():
+    resp = make_response(render_template("upgrade_success.html"))
+    set_pro_cookie(resp)
+    return resp
+
+
+# --------------------
+# Restore Pro Access
+# --------------------
+@app.post("/restore-pro")
+def restore_pro():
+    email = request.form.get("email", "").strip().lower()
+
+    if not email:
+        return render_template(
+            "upgrade.html",
+            restore_error="Please enter the email you used at checkout.",
+            restored=False,
+        )
+
+    customers = stripe.Customer.search(
+        query=f"email:'{email}'",
+        limit=1
+    )
+
+    if not customers.data:
+        return render_template(
+            "upgrade.html",
+            restore_error="No active Pro subscription found for that email.",
+            restored=False,
+        )
+
+    customer_id = customers.data[0].id
+
+    subs = stripe.Subscription.list(
+        customer=customer_id,
+        status="active",
+        limit=1
+    )
+
+    if not subs.data:
+        return render_template(
+            "upgrade.html",
+            restore_error="No active Pro subscription found for that email.",
+            restored=False,
+        )
+
+    resp = make_response(
+        render_template(
+            "upgrade.html",
+            restore_error=None,
+            restored=True
+        )
+    )
+    set_pro_cookie(resp)
+    return resp
 
 
 # --------------------
@@ -127,19 +240,6 @@ def admin_analytics():
         "page_views": sum(1 for e in ANALYTICS_EVENTS if e["event"] == "page_view"),
         "generates": sum(1 for e in ANALYTICS_EVENTS if e["event"] == "generate_attempt"),
         "pdfs": sum(1 for e in ANALYTICS_EVENTS if e["event"] == "pdf_download"),
-        "ai": sum(
-            1 for e in ANALYTICS_EVENTS
-            if e["event"] == "generate_success" and e["data"].get("mode") == "ai"
-        ),
-        "fallback": sum(
-            1 for e in ANALYTICS_EVENTS
-            if e["event"] == "generate_success" and e["data"].get("mode") == "fallback"
-        ),
-        "funnel": {
-            "landing_to_app": 52,
-            "app_to_generate": 31,
-            "generate_to_pdf": 55,
-        }
     }
 
     recent = [
@@ -155,11 +255,13 @@ def admin_analytics():
     )
 
 
+# --------------------
+# Generate proposal
+# --------------------
 @app.post("/generate")
 def generate():
     track("generate_attempt")
 
-    # ---- Rate limit ----
     ip = request.headers.get("X-Forwarded-For", request.remote_addr) or "unknown"
     ip = ip.split(",")[0].strip()
 
@@ -173,19 +275,20 @@ def generate():
             block_reason="rate",
         ), 429
 
-    # ---- Free usage limit ----
-    used = get_used_count()
-    if used >= FREE_LIMIT:
-        track("free_limit_reached")
-        return render_template(
-            "preview.html",
-            proposal_text="",
-            blocked=True,
-            remaining=0,
-            block_reason="free",
-        )
+    if not is_pro_user():
+        used = get_used_count()
+        if used >= FREE_LIMIT:
+            track("free_limit_reached")
+            return render_template(
+                "preview.html",
+                proposal_text="",
+                blocked=True,
+                remaining=0,
+                block_reason="free",
+            )
+    else:
+        used = 0
 
-    # ---- Collect form data ----
     data = {
         "client_name": request.form.get("client_name", "").strip(),
         "service_type": request.form.get("service_type", "").strip(),
@@ -199,15 +302,8 @@ def generate():
         "email": request.form.get("email", "").strip(),
     }
 
-    # ---- Generate proposal body ----
-    try:
-        proposal_text = build_proposal_text(data)
-        track("generate_success", mode="ai_or_fallback")
-    except Exception as e:
-        track("generate_error", error=str(e))
-        proposal_text = "Proposal generation failed."
+    proposal_text = build_proposal_text(data)
 
-    # ---- Append footer (NO AI) ----
     footer_lines = []
     if data["abn"]:
         footer_lines.append(f"ABN: {data['abn']}")
@@ -217,14 +313,13 @@ def generate():
         footer_lines.append(f"Email: {data['email']}")
 
     if footer_lines:
-        proposal_text += (
-            "\n\n—\nBusiness Details\n" +
-            "\n".join(footer_lines)
-        )
+        proposal_text += "\n\n—\nBusiness Details\n" + "\n".join(footer_lines)
 
-    # ---- Increment usage ----
-    used += 1
-    remaining = max(FREE_LIMIT - used, 0)
+    if not is_pro_user():
+        used += 1
+        remaining = max(FREE_LIMIT - used, 0)
+    else:
+        remaining = "∞"
 
     resp = make_response(
         render_template(
@@ -234,13 +329,21 @@ def generate():
             remaining=remaining,
         )
     )
-    set_used_cookie(resp, used)
+
+    if not is_pro_user():
+        set_used_cookie(resp, used)
 
     return resp
 
 
+# --------------------
+# PDF (Pro-only)
+# --------------------
 @app.post("/pdf")
 def pdf():
+    if not is_pro_user():
+        return redirect("/upgrade")
+
     track("pdf_download")
 
     proposal_text = request.form.get("proposal_text", "").strip()
@@ -259,28 +362,14 @@ def pdf():
     line_height = 14
 
     c.setFont("Courier", 11)
-    c.drawString(x, y, "Proposal")
-    y -= 22
-
-    def wrap_line(s, max_len=95):
-        out = []
-        while len(s) > max_len:
-            cut = s.rfind(" ", 0, max_len)
-            if cut == -1:
-                cut = max_len
-            out.append(s[:cut].rstrip())
-            s = s[cut:].lstrip()
-        out.append(s)
-        return out
 
     for raw in proposal_text.splitlines():
-        for ln in wrap_line(raw):
-            if y < 60:
-                c.showPage()
-                c.setFont("Courier", 11)
-                y = height - 60
-            c.drawString(x, y, ln)
-            y -= line_height
+        if y < 60:
+            c.showPage()
+            c.setFont("Courier", 11)
+            y = height - 60
+        c.drawString(x, y, raw)
+        y -= line_height
 
     c.save()
     buffer.seek(0)
