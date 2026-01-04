@@ -79,9 +79,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (editor && data.text){
       editor.value = data.text;
-      editor.classList.remove("locked");
-      editor.removeAttribute("readonly");
+      // stay locked until user clicks Edit
     }
+
 
     localStorage.removeItem(ACTIVE_KEY);
   } catch {}
