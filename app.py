@@ -70,6 +70,15 @@ def set_used_cookie(resp, used: int) -> None:
 # Routes
 # --------------------
 @app.get("/")
+def landing():
+    return render_template("landing.html")
+
+@app.get("/app")
+def home():
+    return render_template("home.html")
+
+
+@app.get("/")
 def home():
     return render_template("home.html")
 
