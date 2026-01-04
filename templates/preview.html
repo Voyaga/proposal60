@@ -37,48 +37,48 @@
         Review and edit before sending.
       </p>
 
-      {% if not proposal_text %}
-        <!-- Empty state -->
-        <div class="notice">
-          <strong>No proposal loaded.</strong><br>
-          Create a proposal to preview, edit, or download.
-        </div>
+      <!-- Actions (always rendered, disabled if empty) -->
+      <div class="actions">
+        <button class="btn secondary" id="editBtn" onclick="enableEdit()" disabled>
+          Edit proposal
+        </button>
 
-        <a href="/app" class="btn">
-          Go to editor
-        </a>
+        <button class="btn" onclick="copyText()" disabled id="copyBtn">
+          Copy
+        </button>
 
-      {% else %}
-        <!-- Actions -->
-        <div class="actions">
-          <button class="btn secondary" id="editBtn" onclick="enableEdit()">
-            Edit proposal
+        <form method="POST" action="/pdf" onsubmit="syncHidden();">
+          <textarea
+            id="proposalHidden"
+            name="proposal_text"
+            style="display:none;"
+          ></textarea>
+          <button class="btn secondary" type="submit" disabled id="pdfBtn">
+            Download PDF
           </button>
+        </form>
+      </div>
 
-          <button class="btn" onclick="copyText()">Copy</button>
+      <!-- Editor ALWAYS exists -->
+      <textarea
+        id="proposalEditor"
+        class="proposal-editor locked"
+        rows="20"
+        readonly
+      >{{ proposal_text }}</textarea>
 
-          <form method="POST" action="/pdf">
-            <textarea id="proposalHidden" name="proposal_text" style="display:none;">
-{{ proposal_text | e }}
-            </textarea>
-            <button class="btn secondary" type="submit" onclick="syncHidden()">
-              Download PDF
-            </button>
-          </form>
-        </div>
+      <!-- Empty state (hidden by default) -->
+      <div id="emptyNotice" class="notice" style="display:none;">
+        <strong>No proposal loaded.</strong><br>
+        Create a proposal to preview, edit, or download.
+      </div>
 
-        <!-- Editor -->
-        <textarea
-          id="proposalEditor"
-          class="proposal-editor locked"
-          rows="20"
-          readonly
-        >{{ proposal_text }}</textarea>
+      <a id="goEditorBtn" href="/app" class="btn" style="display:none;">
+        Go to editor
+      </a>
 
-      {% endif %}
     {% endif %}
 
-    <!-- Footer -->
     <footer class="site-footer">
       © Get The Job
     </footer>
@@ -95,28 +95,48 @@ const ACTIVE_KEY = "gtj_active_proposal";
 const HISTORY_KEY = "gtj_proposal_history";
 const MAX_HISTORY = 5;
 
-/* Load reused proposal */
-document.addEventListener("DOMContentLoaded", () => {
-  const stored = localStorage.getItem(ACTIVE_KEY);
+const editor = document.getElementById("proposalEditor");
+const emptyNotice = document.getElementById("emptyNotice");
+const goEditorBtn = document.getElementById("goEditorBtn");
 
+const editBtn = document.getElementById("editBtn");
+const copyBtn = document.getElementById("copyBtn");
+const pdfBtn = document.getElementById("pdfBtn");
+
+/* Enable action buttons */
+function enableActions() {
+  editBtn.disabled = false;
+  copyBtn.disabled = false;
+  pdfBtn.disabled = false;
+}
+
+/* Load reused proposal OR server proposal */
+document.addEventListener("DOMContentLoaded", () => {
+  // If server already injected text, use it
+  if (editor.value.trim()) {
+    enableActions();
+    saveToHistory(editor.value.trim());
+    return;
+  }
+
+  // Try localStorage reuse
+  const stored = localStorage.getItem(ACTIVE_KEY);
   if (stored) {
     try {
       const data = JSON.parse(stored);
-      const editor = document.getElementById("proposalEditor");
-
-      if (editor && data.text) {
+      if (data.text) {
         editor.value = data.text;
+        enableActions();
+        saveToHistory(data.text);
       }
-
       localStorage.removeItem(ACTIVE_KEY);
+      return;
     } catch {}
   }
 
-  // Save to recent proposals
-  const editor = document.getElementById("proposalEditor");
-  if (editor && editor.value.trim()) {
-    saveToHistory(editor.value.trim());
-  }
+  // Nothing found
+  emptyNotice.style.display = "block";
+  goEditorBtn.style.display = "inline-block";
 });
 
 /* Save proposal to recents */
@@ -126,7 +146,6 @@ function saveToHistory(text) {
     history = JSON.parse(localStorage.getItem(HISTORY_KEY)) || [];
   } catch {}
 
-  // de-duplicate by text only
   history = history.filter(h => h.text !== text);
 
   history.unshift({
@@ -143,32 +162,23 @@ function saveToHistory(text) {
   localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
 }
 
-
 /* Edit mode */
 function enableEdit(){
-  const editor = document.getElementById("proposalEditor");
-  const btn = document.getElementById("editBtn");
-
   editor.removeAttribute("readonly");
   editor.classList.remove("locked");
   editor.focus();
 
-  btn.textContent = "Editing enabled";
-  btn.disabled = true;
+  editBtn.textContent = "Editing enabled";
+  editBtn.disabled = true;
 }
 
 /* Helpers */
-function getEditorText(){
-  return document.getElementById("proposalEditor").value;
-}
-
 function syncHidden(){
-  document.getElementById("proposalHidden").value = getEditorText();
+  document.getElementById("proposalHidden").value = editor.value;
 }
 
 function copyText(){
-  navigator.clipboard.writeText(getEditorText());
-  alert("Copied.");
+  navigator.clipboard.writeText(editor.value);
 }
 </script>
 
