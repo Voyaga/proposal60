@@ -48,6 +48,7 @@ a {
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow);
+  position: relative;
 }
 
 /* ---------- Brand ---------- */
@@ -353,4 +354,36 @@ textarea {
   .landing .steps {
     grid-template-columns: 1fr;
   }
+}
+
+.pro-badge {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  border-radius: 999px;
+  background: #1f2937;
+  color: #fff;
+  letter-spacing: 0.04em;
+}
+
+.pro-badge::after {
+  content: "Unlimited access active";
+  position: absolute;
+  top: 120%;
+  right: 0;
+  background: #111;
+  color: #fff;
+  padding: 6px 8px;
+  font-size: 11px;
+  border-radius: 6px;
+  opacity: 0;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.pro-badge:hover::after {
+  opacity: 1;
 }

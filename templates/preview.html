@@ -11,7 +11,6 @@
 <body>
 
   <div class="wrap">
-
     <h1>Proposal Preview</h1>
 
     {% set blocked = blocked | default(false) %}
@@ -44,7 +43,7 @@
         Review and edit before sending.
       </p>
 
-      <!-- Actions -->
+      <!-- Actions (always rendered, disabled if empty) -->
       <div class="actions">
         <button class="btn secondary" id="editBtn" onclick="enableEdit()" disabled>
           Edit proposal
@@ -66,7 +65,7 @@
         </form>
       </div>
 
-      <!-- Editor -->
+      <!-- Editor ALWAYS exists -->
       <textarea
         id="proposalEditor"
         class="proposal-editor locked"
@@ -74,7 +73,7 @@
         readonly
       >{{ proposal_text }}</textarea>
 
-      <!-- Empty state -->
+      <!-- Empty state (hidden by default) -->
       <div id="emptyNotice" class="notice" style="display:none;">
         <strong>No proposal loaded.</strong><br>
         Create a proposal to preview, edit, or download.
@@ -92,7 +91,7 @@
 
   </div>
 
-  <!-- Back button -->
+  <!-- Bottom-right back button -->
   <a href="/app" class="btn secondary preview-back-btn">
     ← Back to editor
   </a>
@@ -110,19 +109,23 @@ const editBtn = document.getElementById("editBtn");
 const copyBtn = document.getElementById("copyBtn");
 const pdfBtn = document.getElementById("pdfBtn");
 
+/* Enable action buttons */
 function enableActions() {
   editBtn.disabled = false;
   copyBtn.disabled = false;
   pdfBtn.disabled = false;
 }
 
+/* Load reused proposal OR server proposal */
 document.addEventListener("DOMContentLoaded", () => {
-  if (editor && editor.value.trim()) {
+  // If server already injected text, use it
+  if (editor.value.trim()) {
     enableActions();
     saveToHistory(editor.value.trim());
     return;
   }
 
+  // Try localStorage reuse
   const stored = localStorage.getItem(ACTIVE_KEY);
   if (stored) {
     try {
@@ -137,10 +140,12 @@ document.addEventListener("DOMContentLoaded", () => {
     } catch {}
   }
 
+  // Nothing found
   emptyNotice.style.display = "block";
   goEditorBtn.style.display = "inline-block";
 });
 
+/* Save proposal to recents */
 function saveToHistory(text) {
   let history = [];
   try {
@@ -163,6 +168,7 @@ function saveToHistory(text) {
   localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
 }
 
+/* Edit mode */
 function enableEdit(){
   editor.removeAttribute("readonly");
   editor.classList.remove("locked");
@@ -172,6 +178,7 @@ function enableEdit(){
   editBtn.disabled = true;
 }
 
+/* Helpers */
 function syncHidden(){
   document.getElementById("proposalHidden").value = editor.value;
 }
