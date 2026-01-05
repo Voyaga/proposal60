@@ -125,7 +125,11 @@ def landing():
 @app.get("/app")
 def app_home():
     track("page_view", page="app")
-    return render_template("home.html")
+    return render_template(
+        "home.html",
+        is_pro=is_pro_user()
+    )
+
 
 
 @app.get("/preview")
@@ -136,7 +140,9 @@ def preview():
         proposal_text="",
         blocked=False,
         remaining=0,
+        is_pro=is_pro_user()
     )
+
 
 
 @app.get("/upgrade")
@@ -145,8 +151,10 @@ def upgrade():
     return render_template(
         "upgrade.html",
         restore_error=None,
-        restored=False
+        restored=False,
+        is_pro=is_pro_user()
     )
+
 
 
 # --------------------

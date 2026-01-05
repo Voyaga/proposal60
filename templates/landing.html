@@ -13,6 +13,11 @@
 
   <div class="wrap landing">
 
+    {% if not is_pro %}
+      <a class="btn" href="/upgrade">Upgrade to Pro</a>
+    {% endif %}
+
+
     <!-- HERO -->
     <section class="hero section">
       <h1 class="brand">GET THE JOB</h1>
@@ -38,9 +43,10 @@
         <a href="/app" class="btn hero-cta">
           Write My Quote Now →
         </a>
-        <a href="/upgrade" class="btn secondary">
-          Upgrade to Pro
-        </a>
+        {% if not is_pro %}
+          <a href="/upgrade" class="btn secondary">Upgrade</a>
+        {% endif %}
+
       </div>
 
       <p class="fineprint">
@@ -126,9 +132,12 @@
         <a href="/app" class="btn">
           Write My Next Quote Free →
         </a>
-        <a href="/upgrade" class="btn secondary">
-          Upgrade to Pro
-        </a>
+        {% if not is_pro %}
+          <a href="/upgrade" class="btn secondary">
+            Upgrade to Pro
+          </a>
+        {% endif %}
+
       </div>
 
       <p class="fineprint">
