@@ -360,14 +360,16 @@ textarea {
   position: absolute;
   top: 16px;
   right: 16px;
-  padding: 4px 10px;
-  font-size: 12px;
-  font-weight: 700;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 800;
   border-radius: 999px;
-  background: #1f2937;
-  color: #fff;
-  letter-spacing: 0.04em;
+  background: linear-gradient(135deg, var(--blue), var(--green));
+  color: #0f172a;
+  box-shadow: 0 2px 18px rgba(0, 255, 0,.45);
+  letter-spacing: .04em;
 }
+
 
 .pro-badge::after {
   content: "Unlimited access active";
