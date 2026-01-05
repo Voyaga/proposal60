@@ -119,7 +119,10 @@ def set_pro_cookie(resp):
 @app.get("/")
 def landing():
     track("page_view", page="landing")
-    return render_template("landing.html")
+    return render_template(
+        "landing.html",
+        is_pro=is_pro_user()
+    )
 
 
 @app.get("/app")
@@ -129,7 +132,6 @@ def app_home():
         "home.html",
         is_pro=is_pro_user()
     )
-
 
 
 @app.get("/preview")
@@ -144,7 +146,6 @@ def preview():
     )
 
 
-
 @app.get("/upgrade")
 def upgrade():
     track("page_view", page="upgrade")
@@ -154,7 +155,6 @@ def upgrade():
         restored=False,
         is_pro=is_pro_user()
     )
-
 
 
 # --------------------
@@ -178,7 +178,12 @@ def checkout():
 
 @app.get("/upgrade/success")
 def upgrade_success():
-    resp = make_response(render_template("upgrade_success.html"))
+    resp = make_response(
+        render_template(
+            "upgrade_success.html",
+            is_pro=True
+        )
+    )
     set_pro_cookie(resp)
     return resp
 
@@ -195,6 +200,7 @@ def restore_pro():
             "upgrade.html",
             restore_error="Please enter the email you used at checkout.",
             restored=False,
+            is_pro=False
         )
 
     customers = stripe.Customer.search(
@@ -207,6 +213,7 @@ def restore_pro():
             "upgrade.html",
             restore_error="No active Pro subscription found for that email.",
             restored=False,
+            is_pro=False
         )
 
     customer_id = customers.data[0].id
@@ -222,13 +229,15 @@ def restore_pro():
             "upgrade.html",
             restore_error="No active Pro subscription found for that email.",
             restored=False,
+            is_pro=False
         )
 
     resp = make_response(
         render_template(
             "upgrade.html",
             restore_error=None,
-            restored=True
+            restored=True,
+            is_pro=True
         )
     )
     set_pro_cookie(resp)
@@ -281,6 +290,7 @@ def generate():
             blocked=True,
             remaining=0,
             block_reason="rate",
+            is_pro=is_pro_user()
         ), 429
 
     if not is_pro_user():
@@ -293,6 +303,7 @@ def generate():
                 blocked=True,
                 remaining=0,
                 block_reason="free",
+                is_pro=is_pro_user()
             )
     else:
         used = 0
@@ -335,6 +346,7 @@ def generate():
             proposal_text=proposal_text,
             blocked=False,
             remaining=remaining,
+            is_pro=is_pro_user()
         )
     )
 
