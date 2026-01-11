@@ -215,6 +215,26 @@ textarea {
   filter: brightness(1.05);
 }
 
+.recent-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.recent-delete {
+  background: transparent;
+  border: none;
+  color: #cbd5e1;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 4px 6px;
+}
+
+.recent-delete:hover {
+  color: #fff;
+}
+
+
 .content {
   min-width: 0;
 }
