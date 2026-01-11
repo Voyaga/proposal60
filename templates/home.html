@@ -99,7 +99,7 @@
 const HISTORY_KEY = "gtj_proposal_history";
 const ACTIVE_KEY = "gtj_active_proposal";
 
-function loadHistory(){
+function loadHistory() {
   try {
     return JSON.parse(localStorage.getItem(HISTORY_KEY)) || [];
   } catch {
@@ -107,30 +107,50 @@ function loadHistory(){
   }
 }
 
-function renderRecent(){
+function saveHistory(history) {
+  localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+}
+
+function removeHistoryItem(index) {
+  const history = loadHistory();
+  history.splice(index, 1);
+  saveHistory(history);
+  renderRecent();
+}
+
+function renderRecent() {
   const list = document.getElementById("recentList");
   if (!list) return;
 
   const history = loadHistory();
 
-  if (!history.length){
+  if (!history.length) {
     list.innerHTML = "<li class='helper'>No recent proposals yet.</li>";
     return;
   }
 
   list.innerHTML = "";
 
-  history.forEach(item => {
+  history.forEach((item, index) => {
     const li = document.createElement("li");
     li.className = "recent-item";
+
     li.innerHTML = `
-      <strong>${item.client}</strong><br>
-      <span>${item.service}</span>
+      <div class="recent-main">
+        <strong>${item.client}</strong><br>
+        <span>${item.service}</span>
+      </div>
+      <button class="recent-delete" title="Remove">✕</button>
     `;
 
-    li.onclick = () => {
+    li.querySelector(".recent-main").onclick = () => {
       localStorage.setItem(ACTIVE_KEY, JSON.stringify(item));
       window.location.href = "/preview";
+    };
+
+    li.querySelector(".recent-delete").onclick = (e) => {
+      e.stopPropagation();
+      removeHistoryItem(index);
     };
 
     list.appendChild(li);
@@ -153,6 +173,7 @@ window.addEventListener("pageshow", () => {
   btn.textContent = "Write My Quote →";
 });
 </script>
+
 
 </body>
 </html>
