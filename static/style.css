@@ -133,6 +133,10 @@ button:hover {
   filter: brightness(1.05);
 }
 
+#generateBtn {
+  margin-top: 25px;
+}
+
 /* ---------- Forms ---------- */
 label {
   display: block;
@@ -389,3 +393,4 @@ textarea {
 .pro-badge:hover::after {
   opacity: 1;
 }
+
