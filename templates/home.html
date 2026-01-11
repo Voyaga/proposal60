@@ -37,6 +37,18 @@
 
       <!-- RIGHT: Main form -->
       <main class="content">
+        <div class="logo-uploader">
+          <label class="logo-label">
+            <input type="file" id="logoInput" accept="image/*" hidden>
+            <span id="logoPlaceholder">Add your business logo</span>
+            <img id="logoPreview" alt="Business logo" />
+          </label>
+          <button type="button" id="removeLogo" class="logo-remove" hidden>
+            Remove
+          </button>
+        </div>
+
+
         <h1>Send a professional proposal in 60 seconds.</h1>
         <p class="subhead">Client-ready proposals, built for real work.</p>
 
@@ -172,6 +184,47 @@ window.addEventListener("pageshow", () => {
   btn.disabled = false;
   btn.textContent = "Write My Quote →";
 });
+
+const LOGO_KEY = "gtj_business_logo";
+
+const logoInput = document.getElementById("logoInput");
+const logoPreview = document.getElementById("logoPreview");
+const logoPlaceholder = document.getElementById("logoPlaceholder");
+const removeLogoBtn = document.getElementById("removeLogo");
+
+function loadLogo() {
+  const data = localStorage.getItem(LOGO_KEY);
+  if (!data) return;
+
+  logoPreview.src = data;
+  logoPreview.style.display = "block";
+  logoPlaceholder.style.display = "none";
+  removeLogoBtn.hidden = false;
+}
+
+logoInput.addEventListener("change", () => {
+  const file = logoInput.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = () => {
+    localStorage.setItem(LOGO_KEY, reader.result);
+    loadLogo();
+  };
+  reader.readAsDataURL(file);
+});
+
+removeLogoBtn.addEventListener("click", () => {
+  localStorage.removeItem(LOGO_KEY);
+  logoPreview.src = "";
+  logoPreview.style.display = "none";
+  logoPlaceholder.style.display = "inline-block";
+  removeLogoBtn.hidden = true;
+});
+
+loadLogo();
+
+
 </script>
 
 
