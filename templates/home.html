@@ -38,15 +38,17 @@
       <!-- RIGHT: Main form -->
       <main class="content">
         <div class="logo-uploader">
-          <label class="logo-label">
+          <label class="logo-dropzone" for="logoInput" id="logoDropzone">
             <input type="file" id="logoInput" accept="image/*" hidden>
-            <span id="logoPlaceholder">Add your business logo</span>
-            <img id="logoPreview" alt="Business logo" />
+            <span class="logo-text" id="logoPlaceholder">Add your business logo</span>
+            <img id="logoPreview" alt="" hidden />
           </label>
+
           <button type="button" id="removeLogo" class="logo-remove" hidden>
             Remove
           </button>
         </div>
+
 
 
         <h1>Send a professional proposal in 60 seconds.</h1>
