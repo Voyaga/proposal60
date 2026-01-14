@@ -5,120 +5,131 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Create Proposal — Get The Job</title>
   <link rel="icon" href="/static/favicon.ico">
-  <link rel="stylesheet" href="/static/style.css">
+  <link rel="stylesheet" href="/static/style2.css">
 </head>
 
 <body>
 
-  <div class="wrap">
+<div class="wrap">
 
-    {% if is_pro %}
-      <div class="pro-badge">Pro Active</div>
-    {% endif %}
+  {% if is_pro %}
+    <div class="pro-badge">Pro Active</div>
+  {% endif %}
 
-    <!-- Brand -->
-    <div class="brand">
-      <div class="brand-mark">GTJ</div>
-      <div>
-        <div class="brand-name">Get The Job</div>
-        <div class="brand-tag">Client-ready proposals that help win the job.</div>
-      </div>
+  <!-- Brand -->
+  <div class="brand">
+    <div class="brand-mark">GTJ</div>
+    <div>
+      <div class="brand-name">Get The Job</div>
+      <div class="brand-tag">Client-ready proposals that help win the job.</div>
     </div>
-
-    <!-- Two-column layout -->
-    <div class="layout">
-
-      <!-- LEFT: Recent proposals -->
-      <aside class="sidebar">
-        <h2>Recent proposals</h2>
-        <p class="helper">Click a proposal to reuse it</p>
-        <ul id="recentList"></ul>
-      </aside>
-
-      <!-- RIGHT: Main form -->
-      <main class="content">
-        <div class="logo-uploader">
-          <label class="logo-dropzone" for="logoInput" id="logoDropzone">
-            <input type="file" id="logoInput" accept="image/*" hidden>
-            <span class="logo-text" id="logoPlaceholder">Add your business logo</span>
-            <img id="logoPreview" alt="" hidden />
-          </label>
-
-          <button type="button" id="removeLogo" class="logo-remove" hidden>
-            Remove
-          </button>
-        </div>
-
-
-
-        <h1>Send a professional proposal in 60 seconds.</h1>
-        <p class="subhead">Client-ready proposals, built for real work.</p>
-
-        <form id="proposalForm" method="POST" action="/generate">
-
-          <label>Your business name</label>
-          <input name="your_business" placeholder="e.g., Neo Electrical" />
-
-          <label>Type of work / trade</label>
-          <select name="trade">
-            <option value="general">General Trade</option>
-            <option value="electrician">Electrician</option>
-            <option value="plumber">Plumber</option>
-            <option value="builder">Builder / Renovation</option>
-            <option value="hvac">HVAC</option>
-            <option value="cleaner">Cleaning</option>
-          </select>
-
-          <label>Client name *</label>
-          <input name="client_name" required />
-
-          <label>Service type</label>
-          <input name="service_type" placeholder="e.g., Bathroom renovation" />
-
-          <label>Scope (bullet notes) *</label>
-          <textarea name="scope" rows="6" required
-            placeholder="- Supply and install&#10;- Remove old&#10;- Test on completion"></textarea>
-
-          <p class="helper">
-            Tip: keep scope as short bullet notes for best results.
-          </p>
-
-          <label>Price</label>
-          <input name="price" placeholder="e.g., $2,450 incl GST sucker" />
-
-          <label>Tone</label>
-          <select name="tone">
-            <option>Professional</option>
-            <option>Friendly</option>
-            <option>Direct</option>
-          </select>
-
-          <button id="generateBtn" class="btn" type="submit">
-            Write My Quote →
-          </button>
-
-        </form>
-      </main>
-
-    </div>
-
-    <!-- Footer -->
-    <footer class="site-footer">
-      © Get The Job
-    </footer>
-
   </div>
 
+  <div class="layout">
+
+    <!-- LEFT: Recent proposals -->
+    <aside class="sidebar">
+      <h2>Recent proposals</h2>
+      <p class="helper">Click a proposal to reuse it</p>
+      <ul id="recentList"></ul>
+    </aside>
+
+    <!-- RIGHT: Main form -->
+    <main class="content">
+
+      <!-- Logo -->
+      <div class="logo-uploader">
+        <label class="logo-dropzone" for="logoInput">
+          <input type="file" id="logoInput" accept="image/*" hidden>
+          <span class="logo-text" id="logoPlaceholder">Add your business logo</span>
+          <img id="logoPreview" alt="" hidden />
+        </label>
+
+        <button type="button" id="removeLogo" class="logo-remove" hidden>
+          Remove
+        </button>
+      </div>
+
+      <h1>Send a professional proposal in 60 seconds.</h1>
+      <p class="subhead">Client-ready proposals, built for real work.</p>
+
+      <form id="proposalForm" method="POST" action="/generate">
+
+        <!-- Business details (persistent) -->
+        <label>Your business name</label>
+        <input id="bizName" name="your_business" placeholder="e.g., Neo Electrical" />
+
+        <label>ABN</label>
+        <input id="bizAbn" name="abn" placeholder="e.g., 12 345 678 901" />
+
+        <label>Phone</label>
+        <input id="bizPhone" name="phone" placeholder="e.g., 04xx xxx xxx" />
+
+        <label>Email</label>
+        <input id="bizEmail" name="email" placeholder="e.g., hello@yourbusiness.com" />
+
+        <!-- Job details -->
+        <label>Type of work / trade</label>
+        <select name="trade">
+          <option value="general">General Trade</option>
+          <option value="electrician">Electrician</option>
+          <option value="plumber">Plumber</option>
+          <option value="builder">Builder / Renovation</option>
+          <option value="hvac">HVAC</option>
+          <option value="cleaner">Cleaning</option>
+        </select>
+
+        <label>Client name *</label>
+        <input name="client_name" required />
+
+        <label>Service type</label>
+        <input name="service_type" placeholder="e.g., Bathroom renovation" />
+
+        <label>Scope (bullet notes) *</label>
+        <textarea
+          name="scope"
+          rows="6"
+          required
+          placeholder="- Supply and install&#10;- Remove old&#10;- Test on completion"
+        ></textarea>
+
+        <p class="helper">
+          Tip: keep scope as short bullet notes for best results.
+        </p>
+
+        <label>Price</label>
+        <input name="price" placeholder="e.g., $2,450 incl GST" />
+
+        <label>Tone</label>
+        <select name="tone">
+          <option>Professional</option>
+          <option>Friendly</option>
+          <option>Direct</option>
+        </select>
+
+        <button id="generateBtn" class="btn" type="submit">
+          Write My Quote →
+        </button>
+
+      </form>
+    </main>
+  </div>
+
+  <footer class="site-footer">
+    © Get The Job
+  </footer>
+
+</div>
+
 <script>
+/* ------------------ Recents ------------------ */
+
 const HISTORY_KEY = "gtj_proposal_history";
 const ACTIVE_KEY = "gtj_active_proposal";
 
 function loadHistory() {
-  try {
-    return JSON.parse(localStorage.getItem(HISTORY_KEY)) || [];
-  } catch {
-    return [];
-  }
+  try { return JSON.parse(localStorage.getItem(HISTORY_KEY)) || []; }
+  catch { return []; }
 }
 
 function saveHistory(history) {
@@ -137,43 +148,112 @@ function renderRecent() {
   if (!list) return;
 
   const history = loadHistory();
-
   if (!history.length) {
     list.innerHTML = "<li class='helper'>No recent proposals yet.</li>";
     return;
   }
 
   list.innerHTML = "";
-
   history.forEach((item, index) => {
     const li = document.createElement("li");
     li.className = "recent-item";
-
     li.innerHTML = `
       <div class="recent-main">
         <strong>${item.client}</strong><br>
         <span>${item.service}</span>
       </div>
-      <button class="recent-delete" title="Remove">✕</button>
+      <button class="recent-delete">✕</button>
     `;
-
     li.querySelector(".recent-main").onclick = () => {
       localStorage.setItem(ACTIVE_KEY, JSON.stringify(item));
       window.location.href = "/preview";
     };
-
-    li.querySelector(".recent-delete").onclick = (e) => {
+    li.querySelector(".recent-delete").onclick = e => {
       e.stopPropagation();
       removeHistoryItem(index);
     };
-
     list.appendChild(li);
   });
 }
 
 document.addEventListener("DOMContentLoaded", renderRecent);
 
-// Loading state
+/* ------------------ Logo ------------------ */
+
+const LOGO_KEY = "gtj_business_logo";
+const logoInput = document.getElementById("logoInput");
+const logoPreview = document.getElementById("logoPreview");
+const logoPlaceholder = document.getElementById("logoPlaceholder");
+const removeLogoBtn = document.getElementById("removeLogo");
+
+function loadLogo() {
+  const data = localStorage.getItem(LOGO_KEY);
+  if (!data) {
+    logoPreview.hidden = true;
+    logoPreview.src = "";
+    logoPlaceholder.style.display = "inline";
+    removeLogoBtn.hidden = true;
+    return;
+  }
+  logoPreview.src = data;
+  logoPreview.hidden = false;
+  logoPlaceholder.style.display = "none";
+  removeLogoBtn.hidden = false;
+}
+
+logoInput.addEventListener("change", () => {
+  const file = logoInput.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    localStorage.setItem(LOGO_KEY, reader.result);
+    loadLogo();
+  };
+  reader.readAsDataURL(file);
+});
+
+removeLogoBtn.addEventListener("click", () => {
+  localStorage.removeItem(LOGO_KEY);
+  loadLogo();
+});
+
+loadLogo();
+
+/* ------------------ Business Profile ------------------ */
+
+const BIZ_KEY = "gtj_business_profile";
+
+const bizName = document.getElementById("bizName");
+const bizAbn = document.getElementById("bizAbn");
+const bizPhone = document.getElementById("bizPhone");
+const bizEmail = document.getElementById("bizEmail");
+
+function loadBusinessProfile() {
+  let p = {};
+  try { p = JSON.parse(localStorage.getItem(BIZ_KEY)) || {}; } catch {}
+  bizName.value = p.name || "";
+  bizAbn.value = p.abn || "";
+  bizPhone.value = p.phone || "";
+  bizEmail.value = p.email || "";
+}
+
+function saveBusinessProfile() {
+  localStorage.setItem(BIZ_KEY, JSON.stringify({
+    name: bizName.value.trim(),
+    abn: bizAbn.value.trim(),
+    phone: bizPhone.value.trim(),
+    email: bizEmail.value.trim()
+  }));
+}
+
+[bizName, bizAbn, bizPhone, bizEmail].forEach(el =>
+  el.addEventListener("input", saveBusinessProfile)
+);
+
+document.addEventListener("DOMContentLoaded", loadBusinessProfile);
+
+/* ------------------ Submit UX ------------------ */
+
 const form = document.getElementById("proposalForm");
 const btn = document.getElementById("generateBtn");
 
@@ -186,49 +266,7 @@ window.addEventListener("pageshow", () => {
   btn.disabled = false;
   btn.textContent = "Write My Quote →";
 });
-
-const LOGO_KEY = "gtj_business_logo";
-
-const logoInput = document.getElementById("logoInput");
-const logoPreview = document.getElementById("logoPreview");
-const logoPlaceholder = document.getElementById("logoPlaceholder");
-const removeLogoBtn = document.getElementById("removeLogo");
-
-function loadLogo() {
-  const data = localStorage.getItem(LOGO_KEY);
-  if (!data) return;
-
-  logoPreview.src = data;
-  logoPreview.style.display = "block";
-  logoPlaceholder.style.display = "none";
-  removeLogoBtn.hidden = false;
-}
-
-logoInput.addEventListener("change", () => {
-  const file = logoInput.files[0];
-  if (!file) return;
-
-  const reader = new FileReader();
-  reader.onload = () => {
-    localStorage.setItem(LOGO_KEY, reader.result);
-    loadLogo();
-  };
-  reader.readAsDataURL(file);
-});
-
-removeLogoBtn.addEventListener("click", () => {
-  localStorage.removeItem(LOGO_KEY);
-  logoPreview.src = "";
-  logoPreview.style.display = "none";
-  logoPlaceholder.style.display = "inline-block";
-  removeLogoBtn.hidden = true;
-});
-
-loadLogo();
-
-
 </script>
-
 
 </body>
 </html>

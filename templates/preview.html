@@ -39,11 +39,9 @@
         <strong>Free proposals remaining:</strong> {{ remaining }}
       </div>
 
-      <p class="helper">
-        Review and edit before sending.
-      </p>
+      <p class="helper">Review and edit before sending.</p>
 
-      <!-- Actions (always rendered, disabled if empty) -->
+      <!-- Actions -->
       <div class="actions">
         <button class="btn secondary" id="editBtn" onclick="enableEdit()" disabled>
           Edit proposal
@@ -54,18 +52,26 @@
         </button>
 
         <form method="POST" action="/pdf" onsubmit="syncHidden();">
-          <textarea
-            id="proposalHidden"
-            name="proposal_text"
-            style="display:none;"
-          ></textarea>
+          <textarea id="proposalHidden" name="proposal_text" style="display:none;"></textarea>
+
+          <input type="hidden" id="logoHidden" name="logo_data">
+          <input type="hidden" id="bizNameHidden" name="business_name">
+          <input type="hidden" id="bizFooterHidden" name="biz_footer">
+
           <button class="btn secondary" type="submit" disabled id="pdfBtn">
             Download PDF
           </button>
         </form>
+
       </div>
 
-      <!-- Editor ALWAYS exists -->
+      <!-- Header: Logo + Business Name -->
+      <div id="proposalHeader" style="display:none; align-items:center; gap:16px; margin:16px 0;">
+        <img id="previewLogo" alt="" style="max-height:80px; display:none;">
+        <div id="previewBizName" style="font-size:1.4rem; font-weight:900;"></div>
+      </div>
+
+      <!-- Proposal -->
       <textarea
         id="proposalEditor"
         class="proposal-editor locked"
@@ -73,7 +79,7 @@
         readonly
       >{{ proposal_text }}</textarea>
 
-      <!-- Empty state (hidden by default) -->
+      <!-- Empty -->
       <div id="emptyNotice" class="notice" style="display:none;">
         <strong>No proposal loaded.</strong><br>
         Create a proposal to preview, edit, or download.
@@ -85,23 +91,25 @@
 
     {% endif %}
 
-    <footer class="site-footer">
-      © Get The Job
-    </footer>
-
+    <footer class="site-footer">© Get The Job</footer>
   </div>
 
-  <!-- Bottom-right back button -->
-  <a href="/app" class="btn secondary preview-back-btn">
-    ← Back to editor
-  </a>
+  <a href="/app" class="btn secondary preview-back-btn">← Back to editor</a>
 
 <script>
 const ACTIVE_KEY = "gtj_active_proposal";
 const HISTORY_KEY = "gtj_proposal_history";
 const MAX_HISTORY = 5;
 
+const LOGO_KEY = "gtj_business_logo";
+const BIZ_KEY = "gtj_business_profile";
+const FOOTER_MARKER = "\n\n—\nBusiness Details\n";
+
 const editor = document.getElementById("proposalEditor");
+const previewLogo = document.getElementById("previewLogo");
+const previewBizName = document.getElementById("previewBizName");
+const header = document.getElementById("proposalHeader");
+const logoHidden = document.getElementById("logoHidden");
 const emptyNotice = document.getElementById("emptyNotice");
 const goEditorBtn = document.getElementById("goEditorBtn");
 
@@ -109,81 +117,142 @@ const editBtn = document.getElementById("editBtn");
 const copyBtn = document.getElementById("copyBtn");
 const pdfBtn = document.getElementById("pdfBtn");
 
-/* Enable action buttons */
+/* ---------- Helpers ---------- */
+
 function enableActions() {
   editBtn.disabled = false;
   copyBtn.disabled = false;
   pdfBtn.disabled = false;
 }
 
-/* Load reused proposal OR server proposal */
+function loadHeader() {
+  const logo = localStorage.getItem(LOGO_KEY);
+  let profile = {};
+  try { profile = JSON.parse(localStorage.getItem(BIZ_KEY)) || {}; } catch {}
+
+  let show = false;
+
+  if (logo) {
+    previewLogo.src = logo;
+    previewLogo.style.display = "block";
+    show = true;
+  }
+
+  if (profile.name) {
+    previewBizName.textContent = profile.name;
+    show = true;
+  }
+
+  if (show) header.style.display = "flex";
+}
+
+function getBusinessFooter() {
+  let p = {};
+  try { p = JSON.parse(localStorage.getItem(BIZ_KEY)) || {}; } catch {}
+
+  const lines = [];
+  if (p.abn) lines.push(`ABN: ${p.abn}`);
+  if (p.phone) lines.push(`Phone: ${p.phone}`);
+  if (p.email) lines.push(`Email: ${p.email}`);
+
+  return lines.length ? FOOTER_MARKER + lines.join("\n") : "";
+}
+
+function stripExistingFooter(text) {
+  const idx = text.indexOf(FOOTER_MARKER);
+  return idx === -1 ? text.trimEnd() : text.slice(0, idx).trimEnd();
+}
+
+function applyBusinessFooter() {
+  const base = stripExistingFooter(editor.value || "");
+  const footer = getBusinessFooter();
+  editor.value = footer ? base + footer : base;
+}
+
+/* ---------- Load ---------- */
+
 document.addEventListener("DOMContentLoaded", () => {
-  // If server already injected text, use it
+  loadHeader();
+
   if (editor.value.trim()) {
+    applyBusinessFooter();
     enableActions();
-    saveToHistory(editor.value.trim());
+    saveToHistory(editor.value);
     return;
   }
 
-  // Try localStorage reuse
   const stored = localStorage.getItem(ACTIVE_KEY);
   if (stored) {
     try {
       const data = JSON.parse(stored);
       if (data.text) {
         editor.value = data.text;
+        applyBusinessFooter();
         enableActions();
-        saveToHistory(data.text);
+        saveToHistory(editor.value);
       }
       localStorage.removeItem(ACTIVE_KEY);
       return;
     } catch {}
   }
 
-  // Nothing found
   emptyNotice.style.display = "block";
   goEditorBtn.style.display = "inline-block";
 });
 
-/* Save proposal to recents */
+/* ---------- History ---------- */
+
 function saveToHistory(text) {
   let history = [];
-  try {
-    history = JSON.parse(localStorage.getItem(HISTORY_KEY)) || [];
-  } catch {}
+  try { history = JSON.parse(localStorage.getItem(HISTORY_KEY)) || []; } catch {}
 
   history = history.filter(h => h.text !== text);
-
   history.unshift({
-    text: text,
+    text,
     client: "{{ request.form.get('client_name', 'Client') }}",
     service: "{{ request.form.get('service_type', 'Service') }}",
     ts: Date.now()
   });
 
-  if (history.length > MAX_HISTORY) {
-    history = history.slice(0, MAX_HISTORY);
-  }
-
+  if (history.length > MAX_HISTORY) history = history.slice(0, MAX_HISTORY);
   localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
 }
 
-/* Edit mode */
-function enableEdit(){
+/* ---------- Actions ---------- */
+
+function enableEdit() {
   editor.removeAttribute("readonly");
   editor.classList.remove("locked");
   editor.focus();
-
   editBtn.textContent = "Editing enabled";
   editBtn.disabled = true;
 }
 
-/* Helpers */
-function syncHidden(){
+function syncHidden() {
+  applyBusinessFooter();
+
   document.getElementById("proposalHidden").value = editor.value;
+  logoHidden.value = localStorage.getItem(LOGO_KEY) || "";
+
+  try {
+    const profile = JSON.parse(localStorage.getItem(BIZ_KEY)) || {};
+    document.getElementById("bizNameHidden").value = profile.name || "";
+
+    const parts = [];
+    if (profile.name) parts.push(profile.name);
+    if (profile.abn) parts.push(`ABN: ${profile.abn}`);
+    if (profile.phone) parts.push(`Phone: ${profile.phone}`);
+    if (profile.email) parts.push(`Email: ${profile.email}`);
+
+    document.getElementById("bizFooterHidden").value = parts.join(" | ");
+  } catch {
+    document.getElementById("bizFooterHidden").value = "";
+  }
 }
 
-function copyText(){
+
+
+function copyText() {
   navigator.clipboard.writeText(editor.value);
 }
 </script>

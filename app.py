@@ -366,30 +366,185 @@ def pdf():
 
     track("pdf_download")
 
+    # --------------------
+    # Clean proposal body
+    # --------------------
     proposal_text = request.form.get("proposal_text", "").strip()
-    if not proposal_text:
-        proposal_text = "No proposal text provided."
 
+    # Strip preview-injected business details from body
+    lines = proposal_text.splitlines()
+    clean_lines = []
+    for line in lines:
+        if line.strip() == "—":
+            break
+        clean_lines.append(line)
+    proposal_text = "\n".join(clean_lines).rstrip()
+
+    logo_data = request.form.get("logo_data", "").strip()
+    business_name = request.form.get("business_name", "").strip()
+    footer_text = request.form.get(
+        "biz_footer",
+        "Generated with Get The Job"
+    ).strip() or "Generated with Get The Job"
+
+    # --------------------
+    # Imports
+    # --------------------
     from reportlab.pdfgen import canvas
     from reportlab.lib.pagesizes import LETTER
+    from reportlab.lib.colors import HexColor, black
+    from reportlab.lib.utils import ImageReader
+    import base64
+    import io
 
+    # --------------------
+    # Canvas setup
+    # --------------------
     buffer = io.BytesIO()
     c = canvas.Canvas(buffer, pagesize=LETTER)
 
     width, height = LETTER
-    x = 50
-    y = height - 60
+    margin_x = 50
+    y = height
+
+    header_height = 70
+    footer_height = 40
     line_height = 14
 
-    c.setFont("Courier", 11)
+    # --------------------
+    # Gradient header
+    # --------------------
+    GRADIENT_START = HexColor("#1e5eff")  # brand blue
+    GRADIENT_END   = HexColor("#22c55e")  # brand green
 
-    for raw in proposal_text.splitlines():
-        if y < 60:
+    def draw_gradient_header(c, x, y, width, height, steps=100):
+        for i in range(steps):
+            ratio = i / steps
+            r = GRADIENT_START.red   + (GRADIENT_END.red   - GRADIENT_START.red)   * ratio
+            g = GRADIENT_START.green + (GRADIENT_END.green - GRADIENT_START.green) * ratio
+            b = GRADIENT_START.blue  + (GRADIENT_END.blue  - GRADIENT_START.blue)  * ratio
+
+            c.setFillColorRGB(r, g, b)
+            c.rect(
+                x + (width / steps) * i,
+                y,
+                width / steps + 1,
+                height,
+                stroke=0,
+                fill=1
+            )
+
+    draw_gradient_header(
+        c,
+        x=0,
+        y=height - header_height,
+        width=width,
+        height=header_height
+    )
+    # Logo — aligned with body text margin
+    if logo_data.startswith("data:image"):
+        try:
+            _, encoded = logo_data.split(",", 1)
+            image_bytes = base64.b64decode(encoded)
+            image = ImageReader(io.BytesIO(image_bytes))
+
+            logo_h = 50
+            logo_w = 120
+
+            c.drawImage(
+                image,
+                margin_x,
+                height - header_height + (header_height - logo_h) / 2,
+                width=logo_w,
+                height=logo_h,
+                preserveAspectRatio=True,
+                mask="auto",
+            )
+        except Exception:
+            pass
+
+    # Business name — centered
+    if business_name:
+        c.setFillColor("white")
+        c.setFont("Helvetica-Bold", 20)
+        c.drawCentredString(
+            width / 2,
+            height - header_height / 2 + 10,
+            business_name
+        )
+
+    # Proposal title — centered below business name
+    c.setFont("Helvetica-Bold", 13)
+    c.drawCentredString(
+        width / 2,
+        height - header_height / 2 - 10,
+        "PROPOSAL"
+    )
+
+    # Reset cursor
+    y = height - header_height - 30
+    c.setFillColor(black)
+    c.setFont("Helvetica", 11)
+
+    biz_footer_parts = []
+
+    if business_name:
+        biz_footer_parts.append(business_name)
+
+    if proposal_text:
+        pass  # leave body alone
+
+    # Pull business details from proposal_text OR better: pass separately
+    # If you already have them separately, use those variables instead
+
+    # Example using request.form (recommended)
+    abn = request.form.get("abn", "").strip()
+    phone = request.form.get("phone", "").strip()
+    email = request.form.get("email", "").strip()
+
+    if abn:
+        biz_footer_parts.append(f"ABN: {abn}")
+    if phone:
+        biz_footer_parts.append(f"Phone: {phone}")
+    if email:
+        biz_footer_parts.append(f"Email: {email}")
+
+    FOOTER_TEXT = request.form.get(
+        "biz_footer",
+        "Generated with Get The Job"
+    ).strip() or "Generated with Get The Job"
+
+    print("FOOTER:", request.form.get("biz_footer"))
+
+
+    # --- BODY TEXT ---
+    def draw_footer():
+        c.setStrokeColorRGB(0.85, 0.85, 0.85)
+        c.line(margin_x, footer_height + 10, width - margin_x, footer_height + 10)
+
+        c.setFont("Helvetica", 9)
+        c.setFillColorRGB(0.4, 0.4, 0.4)
+
+        c.drawCentredString(
+            width / 2,
+            footer_height - 2,
+            FOOTER_TEXT
+        )
+
+    for line in proposal_text.splitlines():
+        if y < footer_height + 30:
+            draw_footer()
             c.showPage()
-            c.setFont("Courier", 11)
-            y = height - 60
-        c.drawString(x, y, raw)
+
+            # New page reset
+            c.setFont("Helvetica", 11)
+            c.setFillColor(black)
+            y = height - margin_x
+
+        c.drawString(margin_x, y, line)
         y -= line_height
+
+    draw_footer()
 
     c.save()
     buffer.seek(0)
@@ -400,6 +555,9 @@ def pdf():
         as_attachment=True,
         download_name="proposal.pdf",
     )
+
+
+
 
 
 # --------------------

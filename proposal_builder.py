@@ -54,7 +54,7 @@ def build_fallback_proposal(data: dict) -> str:
 
     lines = []
 
-    lines.append(f"Proposal for {client}")
+    lines.append(f"Proposal for: {client}")
     lines.append("")
     lines.append(f"Service: {service}")
     lines.append("")

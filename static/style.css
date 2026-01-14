@@ -414,3 +414,55 @@ textarea {
   opacity: 1;
 }
 
+.logo-uploader {
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo-dropzone {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  max-width: 360px;
+  min-height: 72px;
+  padding: 14px 18px;
+  border-radius: var(--radius-md);
+  border: 2px dashed var(--border);
+  background: rgba(0,0,0,.12);
+  cursor: pointer;
+  user-select: none;
+}
+
+.logo-dropzone:hover {
+  filter: brightness(1.05);
+}
+
+.logo-text {
+  color: var(--muted);
+  font-weight: 800;
+}
+
+#logoPreview {
+  max-height: 80px;
+  max-width: 100%;
+  display: block;
+  border-radius: var(--radius-sm);
+}
+
+.logo-remove {
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 0.9rem;
+  padding: 6px 8px;
+}
+
+.logo-remove:hover {
+  color: var(--text);
+}
+
+
+
