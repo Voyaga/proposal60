@@ -206,9 +206,34 @@ logoInput.addEventListener("change", () => {
   if (!file) return;
   const reader = new FileReader();
   reader.onload = () => {
-    localStorage.setItem(LOGO_KEY, reader.result);
+  const img = new Image();
+  img.onload = () => {
+    const MAX_W = 400;
+    const scale = Math.min(1, MAX_W / img.width);
+
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.round(img.width * scale);
+    canvas.height = Math.round(img.height * scale);
+
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+    // JPEG is smaller; PNG only if transparency matters
+    const dataUrl = canvas.toDataURL("image/jpeg", 0.8);
+
+    // Absolute safety cap
+    if (dataUrl.length > 150_000) {
+      alert("Logo is too large after compression. Please use a simpler image.");
+      return;
+    }
+
+    localStorage.setItem(LOGO_KEY, dataUrl);
     loadLogo();
   };
+  img.src = reader.result;
+};
+
+
   reader.readAsDataURL(file);
 });
 

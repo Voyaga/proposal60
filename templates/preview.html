@@ -51,7 +51,8 @@
           Copy
         </button>
 
-        <form method="POST" action="/pdf" onsubmit="syncHidden();">
+        <form method="POST" action="/pdf" onsubmit="return syncHidden();">
+
           <textarea id="proposalHidden" name="proposal_text" style="display:none;"></textarea>
 
           <input type="hidden" id="logoHidden" name="logo_data">
