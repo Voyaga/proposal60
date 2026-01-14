@@ -14,6 +14,13 @@ from collections import defaultdict, deque
 from itsdangerous import URLSafeSerializer, BadSignature
 import logging
 import stripe
+from PIL import Image
+import uuid
+
+
+UPLOAD_DIR = "uploaded_logos"
+os.makedirs(UPLOAD_DIR, exist_ok=True)
+
 
 # --------------------
 # Analytics (admin-only)
@@ -155,6 +162,33 @@ def upgrade():
         restored=False,
         is_pro=is_pro_user()
     )
+
+@app.get("/logo/<logo_id>")
+def serve_logo(logo_id):
+    return send_file(
+        os.path.join(UPLOAD_DIR, logo_id),
+        mimetype="image/png"
+    )
+
+
+@app.post("/upload-logo")
+def upload_logo():
+    file = request.files.get("logo")
+    if not file:
+        return {"error": "no file"}, 400
+
+    img = Image.open(file).convert("RGBA")
+
+    MAX_W = 400
+    if img.width > MAX_W:
+        ratio = MAX_W / img.width
+        img = img.resize((MAX_W, int(img.height * ratio)))
+
+    logo_id = f"{uuid.uuid4().hex}.png"
+    path = os.path.join(UPLOAD_DIR, logo_id)
+    img.save(path, format="PNG", optimize=True)
+
+    return {"logo_id": logo_id}
 
 
 # --------------------
@@ -370,6 +404,7 @@ def pdf():
     # Clean proposal body
     # --------------------
     proposal_text = request.form.get("proposal_text", "").strip()
+    logo_id = request.form.get("logo_id", "").strip()
 
     # Strip preview-injected business details from body
     lines = proposal_text.splitlines()
@@ -441,27 +476,26 @@ def pdf():
         width=width,
         height=header_height
     )
-    # Logo — aligned with body text margin
-    if logo_data.startswith("data:image"):
-        try:
-            _, encoded = logo_data.split(",", 1)
-            image_bytes = base64.b64decode(encoded)
-            image = ImageReader(io.BytesIO(image_bytes))
 
-            logo_h = 50
-            logo_w = 120
-
-            c.drawImage(
-                image,
-                margin_x,
-                height - header_height + (header_height - logo_h) / 2,
-                width=logo_w,
-                height=logo_h,
-                preserveAspectRatio=True,
-                mask="auto",
-            )
-        except Exception:
-            pass
+    # --------------------
+    # Logo (SERVER-SIDE LOAD)
+    # --------------------
+    if logo_id:
+        logo_path = os.path.join("uploaded_logos", logo_id)
+        if os.path.exists(logo_path):
+            try:
+                image = ImageReader(logo_path)
+                c.drawImage(
+                    image,
+                    margin_x,
+                    height - header_height + 10,
+                    width=120,
+                    height=50,
+                    preserveAspectRatio=True,
+                    mask="auto",
+                )
+            except Exception:
+                pass
 
     # Business name — centered
     if business_name:

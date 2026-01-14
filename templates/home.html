@@ -201,40 +201,29 @@ function loadLogo() {
   removeLogoBtn.hidden = false;
 }
 
-logoInput.addEventListener("change", () => {
+logoInput.addEventListener("change", async () => {
   const file = logoInput.files[0];
   if (!file) return;
-  const reader = new FileReader();
-  reader.onload = () => {
-  const img = new Image();
-  img.onload = () => {
-    const MAX_W = 400;
-    const scale = Math.min(1, MAX_W / img.width);
 
-    const canvas = document.createElement("canvas");
-    canvas.width = Math.round(img.width * scale);
-    canvas.height = Math.round(img.height * scale);
+  const formData = new FormData();
+  formData.append("logo", file);
 
-    const ctx = canvas.getContext("2d");
-    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+  const res = await fetch("/upload-logo", {
+    method: "POST",
+    body: formData
+  });
 
-    // JPEG is smaller; PNG only if transparency matters
-    const dataUrl = canvas.toDataURL("image/jpeg", 0.8);
+  const data = await res.json();
+  if (!data.logo_id) {
+    alert("Logo upload failed");
+    return;
+  }
 
-    // Absolute safety cap
-    if (dataUrl.length > 150_000) {
-      alert("Logo is too large after compression. Please use a simpler image.");
-      return;
-    }
-
-    localStorage.setItem(LOGO_KEY, dataUrl);
-    loadLogo();
-  };
-  img.src = reader.result;
-};
-
-
-  reader.readAsDataURL(file);
+  localStorage.setItem(LOGO_KEY, data.logo_id);
+  logoPreview.src = `/logo/${data.logo_id}`;
+  logoPreview.hidden = false;
+  logoPlaceholder.style.display = "none";
+  removeLogoBtn.hidden = false;
 });
 
 removeLogoBtn.addEventListener("click", () => {

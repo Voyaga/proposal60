@@ -55,7 +55,7 @@
 
           <textarea id="proposalHidden" name="proposal_text" style="display:none;"></textarea>
 
-          <input type="hidden" id="logoHidden" name="logo_data">
+          <input type="hidden" id="logoHidden" name="logo_id">
           <input type="hidden" id="bizNameHidden" name="business_name">
           <input type="hidden" id="bizFooterHidden" name="biz_footer">
 
@@ -234,6 +234,7 @@ function syncHidden() {
 
   document.getElementById("proposalHidden").value = editor.value;
   logoHidden.value = localStorage.getItem(LOGO_KEY) || "";
+
 
   try {
     const profile = JSON.parse(localStorage.getItem(BIZ_KEY)) || {};
