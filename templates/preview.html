@@ -51,11 +51,10 @@
           Copy
         </button>
 
-        <form method="POST" action="/pdf" onsubmit="return syncHidden();">
-
+        <form method="POST" action="/pdf" onsubmit="syncHidden();">
           <textarea id="proposalHidden" name="proposal_text" style="display:none;"></textarea>
 
-          <input type="hidden" id="logoHidden" name="logo_id">
+          <input type="hidden" id="logoHidden" name="logo_data">
           <input type="hidden" id="bizNameHidden" name="business_name">
           <input type="hidden" id="bizFooterHidden" name="biz_footer">
 
@@ -119,6 +118,16 @@ const copyBtn = document.getElementById("copyBtn");
 const pdfBtn = document.getElementById("pdfBtn");
 
 /* ---------- Helpers ---------- */
+
+let pdfDownloaded = false;
+
+function trackClientEvent(name, data = {}) {
+  navigator.sendBeacon(
+    "/track",
+    JSON.stringify({ event: name, data })
+  );
+}
+
 
 function enableActions() {
   editBtn.disabled = false;
@@ -235,7 +244,6 @@ function syncHidden() {
   document.getElementById("proposalHidden").value = editor.value;
   logoHidden.value = localStorage.getItem(LOGO_KEY) || "";
 
-
   try {
     const profile = JSON.parse(localStorage.getItem(BIZ_KEY)) || {};
     document.getElementById("bizNameHidden").value = profile.name || "";
@@ -251,7 +259,16 @@ function syncHidden() {
     document.getElementById("bizFooterHidden").value = "";
   }
 }
+pdfBtn.addEventListener("click", () => {
+  pdfDownloaded = true;
+  trackClientEvent("pdf_clicked");
+});
 
+window.addEventListener("beforeunload", () => {
+  if (!pdfDownloaded) {
+    trackClientEvent("preview_abandon");
+  }
+});
 
 
 function copyText() {

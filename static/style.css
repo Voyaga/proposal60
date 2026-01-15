@@ -4,22 +4,29 @@
 
 /* ---------- Variables ---------- */
 :root {
-  --bg: #1f2933;
-  --panel: #243447;
-  --panel-dark: #1b2634;
-  --border: #334155;
+  /* Base surfaces */
+  --bg: #0E0F11;              /* asphalt */
+  --panel: #1A1C1F;           /* dark concrete */
+  --panel-dark: #141518;      /* deeper concrete */
+  --border: rgba(255,255,255,.18);
 
-  --text: #e5e7eb;
-  --muted: #cbd5e1;
+  /* Text */
+  --text: rgba(255,255,255,.95);
+  --muted: rgba(255,255,255,.65);
 
-  --blue: #38bdf8;
-  --green: #22c55e;
+  /* Accent (construction orange) */
+  --accent: #FF8C00;          /* safety orange */
+  --accent-soft: rgba(255,140,0,.35);
 
+  /* Radii */
   --radius-lg: 18px;
   --radius-md: 12px;
   --radius-sm: 8px;
 
-  --shadow: 0 16px 40px rgba(0,0,0,.4);
+  /* Shadows */
+  --shadow: 0 18px 45px rgba(0,0,0,.55);
+
+  /* Layout */
   --maxw: 1200px;
 }
 
@@ -115,12 +122,31 @@ button {
   display: inline-block;
   padding: 14px 20px;
   border-radius: var(--radius-md);
-  background: linear-gradient(180deg, var(--blue), var(--green));
-  color: #0f172a;
-  font-weight: 800;
-  border: none;
+
+  /* High-contrast construction CTA */
+  background: linear-gradient(
+    180deg,
+    #FFB347,   /* top highlight */
+    #FF8C00    /* safety orange */
+  );
+
+  color: #111; /* dark text for max contrast */
+  font-weight: 900;
+  letter-spacing: .3px;
+
+  border: 2px solid #111; /* asphalt edge */
   cursor: pointer;
+
+  box-shadow:
+    0 6px 0 #111,                /* hard base */
+    0 14px 28px rgba(0,0,0,.55); /* lift */
+
+  transition:
+    transform .12s ease,
+    box-shadow .12s ease,
+    filter .12s ease;
 }
+
 
 .btn.secondary {
   background: transparent;
@@ -414,55 +440,6 @@ textarea {
   opacity: 1;
 }
 
-.logo-uploader {
-  margin-bottom: 24px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.logo-dropzone {
-  display: grid;
-  place-items: center;
-  width: 100%;
-  max-width: 360px;
-  min-height: 72px;
-  padding: 14px 18px;
-  border-radius: var(--radius-md);
-  border: 2px dashed var(--border);
-  background: rgba(0,0,0,.12);
-  cursor: pointer;
-  user-select: none;
-}
-
-.logo-dropzone:hover {
-  filter: brightness(1.05);
-}
-
-.logo-text {
-  color: var(--muted);
-  font-weight: 800;
-}
-
-#logoPreview {
-  max-height: 80px;
-  max-width: 100%;
-  display: block;
-  border-radius: var(--radius-sm);
-}
-
-.logo-remove {
-  background: transparent;
-  border: none;
-  color: var(--muted);
-  cursor: pointer;
-  font-size: 0.9rem;
-  padding: 6px 8px;
-}
-
-.logo-remove:hover {
-  color: var(--text);
-}
 
 
 

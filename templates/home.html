@@ -1,4 +1,5 @@
 <!doctype html>
+<!--suppress ALL -->
 <html>
 <head>
   <meta charset="utf-8" />
@@ -13,7 +14,7 @@
 <div class="wrap">
 
   {% if is_pro %}
-    <div class="pro-badge">Pro Active</div>
+    <div class="pro-badge">Pro Actives</div>
   {% endif %}
 
   <!-- Brand -->
@@ -40,6 +41,9 @@
       <!-- Logo -->
       <div class="logo-uploader">
         <label class="logo-dropzone" for="logoInput">
+          <div id="logoSizeNotice" class="helper" hidden>
+            Logo must be 300KB or under
+          </div>
           <input type="file" id="logoInput" accept="image/*" hidden>
           <span class="logo-text" id="logoPlaceholder">Add your business logo</span>
           <img id="logoPreview" alt="" hidden />
@@ -201,30 +205,40 @@ function loadLogo() {
   removeLogoBtn.hidden = false;
 }
 
-logoInput.addEventListener("change", async () => {
+const MAX_LOGO_SIZE = 333 * 1024; // real limit (333KB)
+
+const logoSizeNotice = document.getElementById("logoSizeNotice");
+
+logoInput.addEventListener("change", () => {
   const file = logoInput.files[0];
   if (!file) return;
 
-  const formData = new FormData();
-  formData.append("logo", file);
+  // Size gate
+  if (file.size > MAX_LOGO_SIZE) {
+    logoSizeNotice.hidden = false;
+    logoInput.value = ""; // reset chooser
 
-  const res = await fetch("/upload-logo", {
-    method: "POST",
-    body: formData
+    trackClientEvent("logo_rejected", {
+    size_kb: Math.round(file.size / 1024)
   });
 
-  const data = await res.json();
-  if (!data.logo_id) {
-    alert("Logo upload failed");
+    setTimeout(() => {
+      logoSizeNotice.hidden = true;
+    }, 5000);
+
     return;
   }
 
-  localStorage.setItem(LOGO_KEY, data.logo_id);
-  logoPreview.src = `/logo/${data.logo_id}`;
-  logoPreview.hidden = false;
-  logoPlaceholder.style.display = "none";
-  removeLogoBtn.hidden = false;
+  logoSizeNotice.hidden = true;
+
+  const reader = new FileReader();
+  reader.onload = () => {
+    localStorage.setItem(LOGO_KEY, reader.result);
+    loadLogo();
+  };
+  reader.readAsDataURL(file);
 });
+
 
 removeLogoBtn.addEventListener("click", () => {
   localStorage.removeItem(LOGO_KEY);
@@ -275,6 +289,28 @@ form.addEventListener("submit", () => {
   btn.disabled = true;
   btn.textContent = "Generating…";
 });
+
+const pageLoadTs = Date.now();
+let firstInteractionTracked = false;
+
+function trackClientEvent(name, data = {}) {
+  navigator.sendBeacon(
+    "/track",
+    JSON.stringify({ event: name, data })
+  );
+}
+
+["input", "change", "click"].forEach(evt => {
+  document.addEventListener(evt, () => {
+    if (firstInteractionTracked) return;
+    firstInteractionTracked = true;
+
+    trackClientEvent("first_interaction", {
+      delay_ms: Date.now() - pageLoadTs
+    });
+  }, { once: true });
+});
+
 
 window.addEventListener("pageshow", () => {
   btn.disabled = false;

@@ -58,6 +58,25 @@
       </ul>
     </div>
 
+    <!-- 🔥 NEW: Friction signals -->
+    <div class="panel">
+      <h2>User friction signals</h2>
+      <ul class="activity">
+        <li>
+          <strong>Hesitations (15s+ before first action):</strong>
+          {{ stats.hesitations | default(0) }}
+        </li>
+        <li>
+          <strong>Logo upload retries:</strong>
+          {{ stats.logo_retries | default(0) }}
+        </li>
+        <li>
+          <strong>Preview abandons (no PDF):</strong>
+          {{ stats.preview_abandons | default(0) }}
+        </li>
+      </ul>
+    </div>
+
     <!-- Activity -->
     <div class="panel">
       <h2>Recent activity</h2>
