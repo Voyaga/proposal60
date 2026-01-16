@@ -597,18 +597,29 @@ def pdf():
             FOOTER_TEXT
         )
 
-    for line in proposal_text.splitlines():
-        if y < footer_height + 30:
-            draw_footer()
-            c.showPage()
+    from reportlab.lib.utils import simpleSplit
 
-            # New page reset
-            c.setFont("Helvetica", 11)
-            c.setFillColor(black)
-            y = height - margin_x
+    max_text_width = width - (margin_x * 2)
 
-        c.drawString(margin_x, y, line)
-        y -= line_height
+    for paragraph in proposal_text.splitlines():
+        wrapped_lines = simpleSplit(
+            paragraph,
+            "Helvetica",
+            11,
+            max_text_width
+        ) or [""]
+
+        for line in wrapped_lines:
+            if y < footer_height + 30:
+                draw_footer()
+                c.showPage()
+
+                c.setFont("Helvetica", 11)
+                c.setFillColor(black)
+                y = height - header_height - 30
+
+            c.drawString(margin_x, y, line)
+            y -= line_height
 
     draw_footer()
 

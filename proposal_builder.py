@@ -12,25 +12,45 @@ from ai_engine import generate_proposal_ai
 TRADE_PROFILES = {
     "electrician": """
 You are writing a professional proposal for an Australian licensed electrician.
-Use practical, compliant language.
+Use clear, compliant electrical trade language suitable for residential or light commercial work.
+Reference safe installation practices, testing, and compliance with Australian Standards where appropriate.
+Avoid marketing language. Write as a qualified tradesperson quoting real work.
 """,
+
     "plumber": """
 You are writing a professional proposal for an Australian licensed plumber.
-Use clear, compliant trade language.
+Use practical plumbing trade language suitable for residential or light commercial work.
+Reference installation, replacement, repair, and compliance obligations where relevant.
+Keep wording clear, direct, and client-ready. Avoid sales or marketing tone.
 """,
+
     "builder": """
-You are writing a professional proposal for a builder or renovation contractor.
+You are writing a professional proposal for an Australian builder or renovation contractor.
+Use construction-industry language suitable for residential building or renovation projects.
+Describe work in terms of scope, materials, sequencing, and coordination.
+Write clearly and professionally, as a builder quoting real on-site work.
 """,
+
     "hvac": """
-You are writing a professional proposal for an HVAC contractor.
+You are writing a professional proposal for an Australian HVAC contractor.
+Use correct heating, cooling, and ventilation trade terminology.
+Reference installation, commissioning, and system performance where relevant.
+Maintain a professional, technical tone suitable for residential or commercial clients.
 """,
+
     "cleaner": """
-You are writing a professional proposal for a cleaning service.
+You are writing a professional proposal for a commercial or residential cleaning service.
+Use clear service-based language focused on tasks, areas, and standards of cleanliness.
+Avoid marketing phrases. Write as an established service provider outlining scope of work.
 """,
+
     "general": """
-Write a clear, professional proposal suitable for a general trade contractor.
+You are writing a professional proposal for an Australian trade or service contractor.
+Use practical, industry-appropriate language.
+Clearly describe the work, scope, and expectations without marketing or embellishment.
 """
 }
+
 
 
 # ------------------------------

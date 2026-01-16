@@ -20,9 +20,19 @@ def generate_proposal_ai(data: dict) -> str:
 
     instructions = (
         "You write clear, professional proposals for Australian trade and service businesses. "
-        "Use plain language. Be concise. Do not use marketing fluff. "
+        "Use plain, practical trade language. "
+        "You may vary sentence structure naturally, as an experienced tradesperson would. "
+        "Sound confident and professional, not generic. "
+        "Avoid marketing fluff, hype, or sales language. "
         "Do not mention AI or automation. "
-        "Write in Australian English."
+        "Write in Australian English.\n\n"
+
+        "CRITICAL FORMAT RULES:\n"
+        "- Output plain text ONLY.\n"
+        "- Do NOT use markdown.\n"
+        "- Do NOT use headings like ### or **bold**.\n"
+        "- Do NOT use bullet symbols other than a dash (-).\n"
+        "- Use normal sentence case and simple numbered section titles like '1. Overview'.\n"
     )
 
     trade_profile = (data.get("trade_profile") or "").strip()
@@ -37,6 +47,20 @@ def generate_proposal_ai(data: dict) -> str:
 
     price = (data.get("price") or "").strip() or "To be confirmed"
     tone = (data.get("tone") or "Professional").strip()
+    TONE_GUIDANCE = {
+        "Professional": (
+            "Use a formal, businesslike tone. Keep language neutral, clear, and matter-of-fact."
+        ),
+        "Friendly": (
+            "Use a warm, approachable tone while remaining professional. "
+            "Allow slightly more conversational phrasing, without slang."
+        ),
+        "Direct": (
+            "Use a concise, straight-to-the-point tone. "
+            "Minimise softening language and keep sentences short and clear."
+        ),
+    }
+    tone_instruction = TONE_GUIDANCE.get(tone, TONE_GUIDANCE["Professional"])
 
     # -------------------------
     # Pass 1: Scope bullets ONLY
@@ -71,7 +95,6 @@ Hard rules:
         )
         locked_scope = (scope_resp.output_text or "").strip()
     except Exception:
-        # Soft fallback for scope only
         locked_scope = "\n".join(
             f"- {ln.lstrip('- ').strip()}"
             for ln in scope_notes.splitlines()
@@ -79,7 +102,7 @@ Hard rules:
         ).strip()
 
     if not locked_scope:
-        locked_scope = "- [Client to confirm scope details]"
+        locked_scope = "- Client to confirm scope details"
 
     # -------------------------
     # Pass 2: Full proposal
@@ -90,26 +113,47 @@ Hard rules:
 Business: {your_business}
 Client: {client_name}
 Service: {service_type}
-Tone: {tone}
 
-Locked Scope of Work (MUST use exactly these bullets; do not add/remove scope items):
+Tone guidance:
+{tone_instruction}
+
+
+Locked Scope of Work (MUST use exactly these bullets; do not add or remove items):
 {locked_scope}
 
 Price: {price}
 
-Write a professional proposal with these exact sections:
+This is a major trade job involving system upgrades, not a minor repair.
 
-1) Overview
-2) Scope of Work
-3) Timeline
-4) Pricing
-5) Payment Terms
-6) Acceptance / Next Steps
+Write a professional proposal in this exact structure:
+
+- The first line must be: "Proposal for: {client_name}"
+- Leave one blank line after it
+
+Then include these sections in order:
+
+1. Overview
+2. Scope of Work
+3. Pricing
+4. Acceptance / Next Steps
+
+- The Overview must be 3–4 sentences and explain the purpose of the work, safety or compliance considerations, and the intended outcome.
+- After the final section, leave one blank line
+- End the proposal with:
+  "Kind regards,"
+  "{your_business}"
 
 Rules:
-- Scope of Work section must reproduce the locked bullets (you may lightly edit wording for grammar only).
-- Placeholders are allowed ONLY for Timeline, Pricing wording (if price is “To be confirmed”), Payment Terms, and Next Steps.
-- Keep language practical and client-ready. No hype. No exclamation points.
+- Output plain text only.
+- Do NOT use markdown or decorative symbols.
+- Do NOT include Timeline or Payment Terms sections.
+- Scope of Work must reproduce the locked bullets exactly (grammar fixes allowed only).
+- Pricing must reflect the provided price or state that pricing is to be confirmed.
+- Acceptance / Next Steps must NOT request a signature.
+- Do NOT ask the client to sign or return the proposal.
+- Acceptance should be described as confirming via phone or email.
+- Use wording suitable for a simple trade quote (e.g. "contact us to proceed").
+- Write as a real Australian trade business quoting real work.
 """.strip()
 
     try:

@@ -593,7 +593,7 @@ form > label:first-of-type{
 
 
 .billing-wrap {
-  margin-top: 500px;
+  margin-top: 50px;
   width: 25%;
   min-width: 280px;   /* prevents it getting unusably small */
      /* centers it */
