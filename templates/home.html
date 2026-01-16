@@ -18,13 +18,22 @@
   {% endif %}
 
   <!-- Brand -->
-  <div class="brand">
+ <div class="brand">
+  <div class="brand-left">
     <div class="brand-mark">GTJ</div>
     <div>
       <div class="brand-name">Get The Job</div>
       <div class="brand-tag">Client-ready proposals that help win the job.</div>
     </div>
   </div>
+
+  {% if not is_pro %}
+    <a href="/upgrade" class="btn hero-cta brand-upgrade">
+      Upgrade Now
+    </a>
+  {% endif %}
+</div>
+
 
   <div class="layout">
 

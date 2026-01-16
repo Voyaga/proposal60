@@ -122,16 +122,21 @@ a:hover{ text-decoration:underline; }
 .brand-mark{
   width: 46px;
   height: 46px;
-  display:grid;
-  place-items:center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
   border-radius: 16px;
   background:
     linear-gradient(135deg, rgba(255,255,255,.18), rgba(255,255,255,.06));
   border: 1px solid rgba(255,255,255,.22);
   box-shadow: 0 10px 22px rgba(0,0,0,.25);
+
   font-weight: 800;
   letter-spacing: .6px;
+  line-height: 1;          /* ← key fix */
 }
+
 
 .brand-name{
   font-size: 15.5px;
@@ -143,6 +148,35 @@ a:hover{ text-decoration:underline; }
   font-size: 13px;
   color: var(--muted);
 }
+
+.brand {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.brand-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.brand-left > div {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.brand-tag {
+  margin: 0;
+  white-space: nowrap;
+}
+
+.brand-upgrade {
+  margin-left: auto;
+  white-space: nowrap;
+}
+
 
 /* Main two-column glass “board” */
 .layout{
@@ -559,7 +593,7 @@ form > label:first-of-type{
 
 
 .billing-wrap {
-  margin-top: 5px;
+  margin-top: 500px;
   width: 25%;
   min-width: 280px;   /* prevents it getting unusably small */
      /* centers it */
@@ -569,4 +603,8 @@ form > label:first-of-type{
 .billing-wrap button {
   width: 100%;
 }
+
+
+
+
 
