@@ -6,7 +6,9 @@
   <title>Upgrade to Pro — Get The Job</title>
   <meta name="description" content="Unlimited professional proposals and PDF exports." />
   <link rel="icon" href="/static/favicon.ico">
+  <link rel="stylesheet" href="/static/style2.css">
   <link rel="stylesheet" href="/static/style.css">
+
 </head>
 
 <body>
@@ -34,19 +36,23 @@
 
       <p class="helper">Cancel anytime. No lock-in.</p>
 
+       <form method="POST" action="/checkout">
+        <button class="btn hero-cta" style="width:100%;">
+          Upgrade to Pro
+        </button>
+      </form>
+
+
       <ul class="feature-list" style="text-align:left; max-width:360px; margin:0 auto 24px;">
         <li>Unlimited proposals</li>
         <li>PDF export</li>
         <li>Edit before sending</li>
         <li>Trade-appropriate wording</li>
         <li>Priority improvements</li>
+        <li>Copy and paste into your preferred editor</li>
       </ul>
 
-      <form method="POST" action="/checkout">
-        <button class="btn" style="width:100%;">
-          Upgrade to Pro
-        </button>
-      </form>
+
 
       <p class="fineprint">
         Secure checkout powered by Stripe
@@ -60,6 +66,8 @@
     <p class="helper">
       Restore Pro access using the email you paid with.
     </p>
+
+
 
     {% if restore_error %}
       <div class="notice">
@@ -87,6 +95,25 @@
         Restore Pro Access
       </button>
     </form>
+
+    {% if is_pro %}
+  <div class="billing-wrap">
+    <form method="POST" action="/billing-portal" style="margin-top:14px;">
+      <input
+        type="email"
+        name="email"
+        required
+        placeholder="Email used at checkout"
+      >
+      <button class="btn secondary" style="margin-top:8px;">
+        Cancel subscription
+      </button>
+    </form>
+  </div>
+{% endif %}
+
+
+
 
     <!-- ===== Back ===== -->
     <div class="actions" style="justify-content:center; margin-top:40px;">

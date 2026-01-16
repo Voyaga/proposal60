@@ -14,7 +14,7 @@
 <div class="wrap">
 
   {% if is_pro %}
-    <div class="pro-badge">Pro Active</div>
+    <div class="pro-badge">Pro Version</div>
   {% endif %}
 
   <!-- Brand -->
@@ -118,6 +118,32 @@
       </form>
     </main>
   </div>
+
+     <h2 class="center-note">
+  Proposal generations sometimes may take a short while to generate
+</h2>
+
+
+
+
+{% if is_pro %}
+  <h4>You can cancel your subscription below</h4>
+  <div class="billing-wrap">
+    <form method="POST" action="/billing-portal" style="margin-top:14px;">
+      <input
+        type="email"
+        name="email"
+        required
+        placeholder="Email used at checkout"
+      >
+      <button class="btn secondary" style="margin-top:8px;">
+        Cancel subscription
+      </button>
+    </form>
+  </div>
+{% endif %}
+
+
 
   <footer class="site-footer">
     © Get The Job

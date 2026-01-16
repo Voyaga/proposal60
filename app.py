@@ -308,6 +308,35 @@ def admin_analytics():
         recent=recent
     )
 
+# --------------------
+# Stripe Billing Portal (Cancel / Manage)
+# --------------------
+@app.post("/billing-portal")
+def billing_portal():
+    email = request.form.get("email", "").strip().lower()
+    if not email:
+        return redirect("/upgrade")
+
+    customers = stripe.Customer.search(
+        query=f"email:'{email}'",
+        limit=1
+    )
+
+    if not customers.data:
+        return redirect("/upgrade")
+
+    customer_id = customers.data[0].id
+
+    session = stripe.billing_portal.Session.create(
+        customer=customer_id,
+        return_url=request.host_url + "app"
+    )
+
+    return redirect(session.url, code=303)
+
+
+
+
 
 # --------------------
 # Generate proposal

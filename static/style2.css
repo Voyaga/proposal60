@@ -533,12 +533,14 @@ form > label:first-of-type{
   .layout{
     grid-template-columns: 1fr;
   }
-  .pro-badge{
-    position:static;
-    transform:none;
-    display:inline-flex;
-    margin-bottom: 10px;
-  }
+  .pro-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  line-height: 1.1;
+}
+
   .wrap{ width: min(900px, calc(100% - 28px)); }
   .content h1{ font-size: 24px; }
 }
@@ -547,3 +549,24 @@ form > label:first-of-type{
 @media (prefers-reduced-motion: reduce){
   *{ transition:none !important; }
 }
+
+.center-note {
+  text-align: center;
+  margin: 40px auto 20px;
+  max-width: 700px;
+  color: #555;
+}
+
+
+.billing-wrap {
+  margin-top: 5px;
+  width: 25%;
+  min-width: 280px;   /* prevents it getting unusably small */
+     /* centers it */
+}
+
+.billing-wrap input,
+.billing-wrap button {
+  width: 100%;
+}
+
