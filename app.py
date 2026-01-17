@@ -379,6 +379,7 @@ def generate():
         "service_type": request.form.get("service_type", "").strip(),
         "scope": request.form.get("scope", "").strip(),
         "price": request.form.get("price", "").strip(),
+        "timeframe": request.form.get("timeframe", "").strip(),  # ← ADD THIS
         "tone": request.form.get("tone", "Professional").strip(),
         "your_business": request.form.get("your_business", "").strip(),
         "trade": request.form.get("trade", "general").strip().lower(),

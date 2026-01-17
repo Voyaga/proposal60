@@ -36,6 +36,7 @@ def generate_proposal_ai(data: dict) -> str:
     )
 
     trade_profile = (data.get("trade_profile") or "").strip()
+    timeframe = (data.get("timeframe") or "").strip()
 
     your_business = (data.get("your_business") or "Your Business").strip()
     client_name = (data.get("client_name") or "Client").strip()
@@ -47,6 +48,7 @@ def generate_proposal_ai(data: dict) -> str:
 
     price = (data.get("price") or "").strip() or "To be confirmed"
     tone = (data.get("tone") or "Professional").strip()
+
     TONE_GUIDANCE = {
         "Professional": (
             "Use a formal, businesslike tone. Keep language neutral, clear, and matter-of-fact."
@@ -105,6 +107,23 @@ Hard rules:
         locked_scope = "- Client to confirm scope details"
 
     # -------------------------
+    # Build dynamic section list
+    # -------------------------
+    sections = [
+        "1. Overview",
+        "2. Scope of Work",
+    ]
+
+    if timeframe:
+        sections.append("3. Timeframe")
+        pricing_idx = 4
+    else:
+        pricing_idx = 3
+
+    sections.append(f"{pricing_idx}. Pricing")
+    sections.append(f"{pricing_idx + 1}. Acceptance / Next Steps")
+
+    # -------------------------
     # Pass 2: Full proposal
     # -------------------------
     proposal_prompt = f"""
@@ -117,10 +136,17 @@ Service: {service_type}
 Tone guidance:
 {tone_instruction}
 
-
 Locked Scope of Work (MUST use exactly these bullets; do not add or remove items):
 {locked_scope}
+"""
 
+    if timeframe:
+        proposal_prompt += f"""
+Timeframe (use exactly this wording, do not expand, estimate, or add dates):
+{timeframe}
+"""
+
+    proposal_prompt += f"""
 Price: {price}
 
 This is a major trade job involving system upgrades, not a minor repair.
@@ -132,13 +158,10 @@ Write a professional proposal in this exact structure:
 
 Then include these sections in order:
 
-1. Overview
-2. Scope of Work
-3. Pricing
-4. Acceptance / Next Steps
+{chr(10).join(sections)}
 
-- The Overview must be 3–4 sentences and explain the purpose of the work, safety or compliance considerations, and the intended outcome.
-- After the final section, leave one blank line
+- The Overview must be 4–5 sentences and explain the purpose of the work, safety or compliance considerations, and the intended outcome.
+- After the final section, leave one blank line.
 - End the proposal with:
   "Kind regards,"
   "{your_business}"
@@ -146,13 +169,14 @@ Then include these sections in order:
 Rules:
 - Output plain text only.
 - Do NOT use markdown or decorative symbols.
+- Do NOT invent, infer, or estimate timeframes.
+- If a Timeframe section is included, use the supplied wording only.
 - Do NOT include Timeline or Payment Terms sections.
 - Scope of Work must reproduce the locked bullets exactly (grammar fixes allowed only).
 - Pricing must reflect the provided price or state that pricing is to be confirmed.
 - Acceptance / Next Steps must NOT request a signature.
 - Do NOT ask the client to sign or return the proposal.
 - Acceptance should be described as confirming via phone or email.
-- Use wording suitable for a simple trade quote (e.g. "contact us to proceed").
 - Write as a real Australian trade business quoting real work.
 """.strip()
 

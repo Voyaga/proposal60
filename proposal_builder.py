@@ -65,53 +65,76 @@ def build_proposal_text(data: dict) -> str:
 
 
 def build_fallback_proposal(data: dict) -> str:
-    """Deterministic fallback proposal."""
-    client = data.get("client_name", "Client")
-    service = data.get("service_type", "the requested work")
+    """Deterministic fallback proposal (no AI)."""
+
+    client = data.get("client_name", "Client").strip()
+    service = data.get("service_type", "the requested work").strip()
     scope = data.get("scope", "").strip()
     price = data.get("price", "").strip()
+    timeframe = data.get("timeframe", "").strip()
     business = data.get("your_business", "").strip()
 
     lines = []
 
+    # ---- Header ----
     lines.append(f"Proposal for: {client}")
     lines.append("")
-    lines.append(f"Service: {service}")
-    lines.append("")
 
+    # ---- Overview ----
+    lines.append("1. Overview")
     if business:
         lines.append(
-            f"Thank you for the opportunity to provide this proposal on behalf of {business}."
+            f"This proposal outlines the scope of works for {service} to be carried out by {business}. "
+            "The work will be completed in accordance with standard trade practices and applicable requirements."
         )
     else:
-        lines.append("Thank you for the opportunity to provide this proposal.")
-
+        lines.append(
+            f"This proposal outlines the scope of works for {service}. "
+            "The work will be completed in accordance with standard trade practices and applicable requirements."
+        )
     lines.append("")
-    lines.append("Scope of Works:")
 
+    # ---- Scope of Work ----
+    lines.append("2. Scope of Work")
     if scope:
         for line in scope.splitlines():
-            lines.append(f"- {line.lstrip('- ').strip()}")
+            clean = line.lstrip("- ").strip()
+            if clean:
+                lines.append(f"- {clean}")
     else:
         lines.append("- Details to be confirmed")
-
     lines.append("")
 
-    if price:
-        lines.append(f"Price: {price}")
+    # ---- Optional Timeframe ----
+    section_index = 3
+    if timeframe:
+        lines.append(f"{section_index}. Timeframe")
+        lines.append(timeframe)
         lines.append("")
+        section_index += 1
 
+    # ---- Pricing ----
+    lines.append(f"{section_index}. Pricing")
+    if price:
+        lines.append(price)
+    else:
+        lines.append("Pricing to be confirmed.")
+    lines.append("")
+    section_index += 1
+
+    # ---- Acceptance ----
+    lines.append(f"{section_index}. Acceptance / Next Steps")
     lines.append(
-        "Please review the details above and let us know if you have any questions "
-        "or would like to proceed."
+        "Please review the details above and contact us by phone or email "
+        "to confirm acceptance or discuss any questions."
     )
     lines.append("")
     lines.append("Kind regards,")
-
     if business:
         lines.append(business)
 
     return "\n".join(lines)
+
 
 
 # ------------------------------
