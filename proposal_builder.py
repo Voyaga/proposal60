@@ -38,6 +38,67 @@ Reference installation, commissioning, and system performance where relevant.
 Maintain a professional, technical tone suitable for residential or commercial clients.
 """,
 
+    "carpenter": """
+You are writing a professional proposal for an Australian carpenter or joiner.
+Use trade-accurate carpentry language covering framing, fix-out, or custom work.
+Describe materials, workmanship, and installation methods clearly.
+Write as an experienced tradesperson quoting practical carpentry work.
+""",
+
+    "tiler": """
+You are writing a professional proposal for an Australian wall and floor tiler.
+Use correct tiling terminology covering surface preparation, waterproofing, and installation.
+Reference alignment, finishes, and compliance where applicable.
+Keep language practical and trade-focused.
+""",
+
+    "painter": """
+You are writing a professional proposal for an Australian painter and decorator.
+Use trade language covering surface preparation, coatings, application methods, and finishes.
+Avoid decorative or marketing language. Write as a professional outlining scope of painting works.
+""",
+
+    "landscaper": """
+You are writing a professional proposal for an Australian landscaping contractor.
+Use clear language describing site preparation, hardscape or softscape works, and installation.
+Reference materials, layout, and practical outcomes.
+Write as a contractor quoting real outdoor works.
+""",
+
+    "concreter": """
+You are writing a professional proposal for an Australian concreting contractor.
+Use trade-specific language covering formwork, reinforcement, placement, and finishing.
+Describe works in practical terms suitable for residential or light commercial projects.
+Avoid promotional tone.
+""",
+
+    "roofer": """
+You are writing a professional proposal for an Australian roofing contractor.
+Use correct roofing terminology covering repairs, replacement, or new installations.
+Reference materials, fixing methods, and weatherproofing where relevant.
+Write clearly as a tradesperson quoting roofing work.
+""",
+
+    "glazier": """
+You are writing a professional proposal for an Australian glazier.
+Use trade-appropriate language describing glazing, installation, and safety considerations.
+Reference measurements, materials, and fitting practices where applicable.
+Maintain a professional, technical tone.
+""",
+
+    "flooring": """
+You are writing a professional proposal for an Australian flooring contractor.
+Use correct terminology for timber, laminate, vinyl, or carpet flooring installations.
+Describe preparation, installation, and finishing works clearly.
+Write as a contractor quoting real flooring work.
+""",
+
+    "handyman": """
+You are writing a professional proposal for an Australian handyman or maintenance contractor.
+Use clear, practical language describing general repairs, installations, or minor works.
+Keep descriptions concise and client-ready without marketing or exaggeration.
+""",
+
     "cleaner": """
 You are writing a professional proposal for a commercial or residential cleaning service.
 Use clear service-based language focused on tasks, areas, and standards of cleanliness.
@@ -53,15 +114,27 @@ Clearly describe the work, scope, and expectations without marketing or embellis
 
 
 
+
 # ------------------------------
 # Proposal text builders
 # ------------------------------
+# Filename: proposal_builder.py
+# Placement: function build_proposal_text (entire function)
+
 def build_proposal_text(data: dict) -> str:
     """Primary proposal builder: AI first, fallback if unavailable."""
+
+    trade = (data.get("trade") or "general").strip().lower()
+    data["trade_profile"] = TRADE_PROFILES.get(
+        trade,
+        TRADE_PROFILES["general"]
+    )
+
     try:
         return generate_proposal_ai(data)
     except Exception:
         return build_fallback_proposal(data)
+
 
 
 def build_fallback_proposal(data: dict) -> str:
