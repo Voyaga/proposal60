@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}Privacy Policy{% endblock %}
+
+{% block content %}
+
+<div style="margin-bottom:16px;">
+  <a href="/" class="btn secondary">← Home</a>
+</div>
+
+
+<div class="card">
+  <h1>Privacy Policy</h1>
+  <p class="muted">Last updated: January 20, 2026</p>
+
+  <p>
+    This policy explains how information is handled when you use Get The Job.
+  </p>
+
+  <h2>Information we collect</h2>
+  <ul>
+    <li><strong>Email address:</strong> only if you provide it for billing, support, or restoring Pro access.</li>
+    <li><strong>Payment information:</strong> processed by Stripe. We do not store card details.</li>
+    <li><strong>Usage data:</strong> minimal event data for reliability, limits, and abuse prevention.</li>
+  </ul>
+
+  <h2>Proposal content</h2>
+  <p>
+    Proposal and quote text is generated on demand and is not stored on our servers.
+    Drafts may be temporarily stored in your browser (for example, using localStorage)
+    to support previewing and reuse.
+  </p>
+
+  <h2>How information is used</h2>
+  <ul>
+    <li>Provide and operate the Service.</li>
+    <li>Confirm Pro access and manage subscriptions.</li>
+    <li>Prevent abuse and ensure reliability.</li>
+  </ul>
+
+  <h2>Third parties</h2>
+  <p>
+    Stripe handles payments under their own privacy policy.
+  </p>
+
+  <h2>Data retention</h2>
+  <p>
+    We retain only what is necessary for operating the Service and meeting legal obligations.
+  </p>
+
+  <h2>Your choices</h2>
+  <ul>
+    <li>You may stop using the Service at any time.</li>
+    <li>You may request deletion of billing-related data where legally permitted.</li>
+  </ul>
+
+  <h2>Contact</h2>
+  <p>
+    Support: <strong>support@yourdomain.com</strong>
+  </p>
+</div>
+{% endblock %}
