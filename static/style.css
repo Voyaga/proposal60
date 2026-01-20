@@ -287,13 +287,13 @@ textarea {
 }
 
 /* ---------- Footer ---------- */
-.site-footer {
-  margin-top: 48px;
-  padding-top: 16px;
-  border-top: 1px solid var(--border);
-  text-align: center;
-  font-size: .85rem;
-  color: var(--muted);
+/* Footer */
+.site-footer{
+  margin-top: 16px;
+  padding: 10px 2px;
+  text-align:center;
+  color: rgba(255,255,255,.50);
+  font-size: 12.5px;
 }
 
 /* ---------- Preview Back Button ---------- */
