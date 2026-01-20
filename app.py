@@ -168,6 +168,15 @@ def upgrade():
     )
 
 
+@app.get("/privacy")
+def privacy():
+    return render_template("privacy.html")
+
+@app.get("/terms")
+def terms():
+    return render_template("terms.html")
+
+
 # --------------------
 # Stripe Checkout
 # --------------------
@@ -264,6 +273,14 @@ def admin_analytics():
     if key != os.environ.get("ADMIN_KEY"):
         return "Forbidden", 403
 
+    trade_counts = {}
+
+    for e in ANALYTICS_EVENTS:
+        if e["event"] == "trade_selected":
+            trade = e["data"].get("trade")
+            if trade:
+                trade_counts[trade] = trade_counts.get(trade, 0) + 1
+
     stats = {
         "page_views": sum(1 for e in ANALYTICS_EVENTS if e["event"] == "page_view"),
         "generates": sum(1 for e in ANALYTICS_EVENTS if e["event"] == "generate_attempt"),
@@ -272,6 +289,8 @@ def admin_analytics():
         # generation mode (placeholders for now)
         "ai": sum(1 for e in ANALYTICS_EVENTS if e["event"] == "ai_used"),
         "fallback": sum(1 for e in ANALYTICS_EVENTS if e["event"] == "fallback_used"),
+
+        "trades": trade_counts,  # ← THIS WAS MISSING
 
         # funnel (safe defaults)
         "funnel": {
@@ -338,6 +357,7 @@ def billing_portal():
 
 
 
+
 # --------------------
 # Generate proposal
 # --------------------
@@ -387,6 +407,14 @@ def generate():
         "phone": request.form.get("phone", "").strip(),
         "email": request.form.get("email", "").strip(),
     }
+
+    # Filename: app.py
+    # Placement: /generate route, immediately after data dict
+
+    track(
+        "trade_selected",
+        trade=data["trade"]
+    )
 
     proposal_text = build_proposal_text(data)
 
