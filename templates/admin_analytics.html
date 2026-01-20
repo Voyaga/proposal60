@@ -88,6 +88,24 @@
       </ul>
     </div>
 
+    <!-- Trades -->
+<div class="panel">
+  <h2>Trades selected</h2>
+
+  {% if stats.trades %}
+    <ul class="activity">
+      {% for trade, count in stats.trades.items() %}
+        <li>
+          <strong>{{ trade }}</strong>: {{ count }}
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="helper">No trade data yet.</p>
+  {% endif %}
+</div>
+
+
     <footer class="site-footer">
       Admin only • © Get The Job
     </footer>

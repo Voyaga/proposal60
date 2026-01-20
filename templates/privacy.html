@@ -1,61 +1,117 @@
-{% extends "base.html" %}
-{% block title %}Privacy Policy{% endblock %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Privacy Policy</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 
-{% block content %}
+  <style>
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      background: #0b0f17;
+      color: #e5e7eb;
+      line-height: 1.6;
+    }
+    .wrap {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 32px 18px;
+    }
+    a {
+      color: #93c5fd;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+    .card {
+      background: #111827;
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 16px;
+      padding: 24px;
+    }
+    h1, h2 {
+      line-height: 1.2;
+    }
+    h1 {
+      margin-top: 0;
+      font-size: 30px;
+    }
+    h2 {
+      margin-top: 26px;
+      font-size: 22px;
+    }
+    p, li {
+      color: #e5e7eb;
+    }
+    .muted {
+      color: #9ca3af;
+    }
+    ul {
+      margin-left: 20px;
+    }
+    .nav {
+      margin-bottom: 18px;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="nav">
+      <a href="/">← Home</a>
+    </div>
 
-<div style="margin-bottom:16px;">
-  <a href="/" class="btn secondary">← Home</a>
-</div>
+    <div class="card">
+      <h1>Privacy Policy</h1>
+      <p class="muted">Last updated: January 20, 2026</p>
 
+      <p>
+        This policy explains how information is handled when you use Get The Job (the “Service”).
+      </p>
 
-<div class="card">
-  <h1>Privacy Policy</h1>
-  <p class="muted">Last updated: January 20, 2026</p>
+      <h2>Information we collect</h2>
+      <ul>
+        <li><strong>Email address:</strong> only if you provide it for billing, support, or restoring Pro access.</li>
+        <li><strong>Payment information:</strong> processed by Stripe. We do not store card details.</li>
+        <li><strong>Usage data:</strong> minimal event data for reliability, limits, and abuse prevention.</li>
+      </ul>
 
-  <p>
-    This policy explains how information is handled when you use Get The Job.
-  </p>
+      <h2>Proposal content</h2>
+      <p>
+        Proposal and quote text is generated on demand and is not stored on our servers.
+        Drafts may be temporarily stored in your browser (for example, using localStorage)
+        to support previewing and reuse.
+      </p>
 
-  <h2>Information we collect</h2>
-  <ul>
-    <li><strong>Email address:</strong> only if you provide it for billing, support, or restoring Pro access.</li>
-    <li><strong>Payment information:</strong> processed by Stripe. We do not store card details.</li>
-    <li><strong>Usage data:</strong> minimal event data for reliability, limits, and abuse prevention.</li>
-  </ul>
+      <h2>How information is used</h2>
+      <ul>
+        <li>Provide and operate the Service.</li>
+        <li>Confirm Pro access and manage subscriptions.</li>
+        <li>Prevent abuse and ensure reliability.</li>
+      </ul>
 
-  <h2>Proposal content</h2>
-  <p>
-    Proposal and quote text is generated on demand and is not stored on our servers.
-    Drafts may be temporarily stored in your browser (for example, using localStorage)
-    to support previewing and reuse.
-  </p>
+      <h2>Third parties</h2>
+      <p>
+        Stripe handles payments under their own privacy policy.
+      </p>
 
-  <h2>How information is used</h2>
-  <ul>
-    <li>Provide and operate the Service.</li>
-    <li>Confirm Pro access and manage subscriptions.</li>
-    <li>Prevent abuse and ensure reliability.</li>
-  </ul>
+      <h2>Data retention</h2>
+      <p>
+        We retain only what is necessary for operating the Service and meeting legal obligations.
+      </p>
 
-  <h2>Third parties</h2>
-  <p>
-    Stripe handles payments under their own privacy policy.
-  </p>
+      <h2>Your choices</h2>
+      <ul>
+        <li>You may stop using the Service at any time.</li>
+        <li>You may request deletion of billing-related data where legally permitted.</li>
+      </ul>
 
-  <h2>Data retention</h2>
-  <p>
-    We retain only what is necessary for operating the Service and meeting legal obligations.
-  </p>
-
-  <h2>Your choices</h2>
-  <ul>
-    <li>You may stop using the Service at any time.</li>
-    <li>You may request deletion of billing-related data where legally permitted.</li>
-  </ul>
-
-  <h2>Contact</h2>
-  <p>
-    Support: <strong>support@yourdomain.com</strong>
-  </p>
-</div>
-{% endblock %}
+      <h2>Contact</h2>
+      <p>
+        Support: <strong>support@yourdomain.com</strong>
+      </p>
+    </div>
+  </div>
+</body>
+</html>

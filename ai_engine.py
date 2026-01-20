@@ -149,7 +149,7 @@ Timeframe (use exactly this wording, do not expand, estimate, or add dates):
     proposal_prompt += f"""
 Price: {price}
 
-This is a major trade job involving system upgrades, not a minor repair.
+This is a trade job involving professional works
 
 Write a professional proposal in this exact structure:
 

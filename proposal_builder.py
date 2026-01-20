@@ -131,9 +131,32 @@ def build_proposal_text(data: dict) -> str:
     )
 
     try:
-        return generate_proposal_ai(data)
-    except Exception:
+        text = generate_proposal_ai(data)
+
+        # Analytics hook (AI path)
+        try:
+            from app import track
+            track("ai_used", trade=trade)
+        except Exception:
+            pass
+
+        return text
+
+    except Exception as e:
+        # Analytics hook (failure)
+        try:
+            from app import track
+            track(
+                "ai_failed",
+                trade=trade,
+                error=type(e).__name__
+            )
+            track("fallback_used", trade=trade)
+        except Exception:
+            pass
+
         return build_fallback_proposal(data)
+
 
 
 
