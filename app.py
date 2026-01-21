@@ -458,10 +458,6 @@ def billing_portal():
     return redirect(session.url, code=303)
 
 
-
-
-
-
 # --------------------
 # Generate proposal
 # --------------------
@@ -766,6 +762,39 @@ def pdf():
         download_name="proposal.pdf",
     )
 
+@app.route("/stripe/webhook", methods=["POST"])
+def stripe_webhook():
+    payload = request.data
+    sig = request.headers.get("Stripe-Signature")
+
+    try:
+        event = stripe.Webhook.construct_event(
+            payload,
+            sig,
+            os.environ.get("STRIPE_WEBHOOK_SECRET")
+        )
+    except Exception:
+        return "", 400
+
+    # Subscription cancelled or ended
+    if event["type"] in (
+        "customer.subscription.deleted",
+        "customer.subscription.updated"
+    ):
+        sub = event["data"]["object"]
+
+        if sub.get("status") in ("canceled", "unpaid", "incomplete_expired"):
+            customer_id = sub["customer"]
+
+            # Clear device registry
+            stripe.Customer.modify(
+                customer_id,
+                metadata={
+                    "pro_devices": ""
+                }
+            )
+
+    return "", 200
 
 
 
