@@ -90,6 +90,8 @@
         required
         placeholder="you@example.com"
       >
+      <input type="hidden" name="device_id" id="device_id">
+
 
       <button class="btn secondary" style="margin-top:14px;">
         Restore Pro Access
@@ -130,6 +132,24 @@
 </footer>
 
   </div>
+
+<script>
+(function () {
+  // Create a stable device id for this browser
+  if (!localStorage.getItem("gtj_device_id")) {
+    if (crypto && crypto.randomUUID) {
+      localStorage.setItem("gtj_device_id", crypto.randomUUID());
+    } else {
+      localStorage.setItem("gtj_device_id", Date.now() + "-" + Math.random());
+    }
+  }
+
+  // Push it into the hidden form field
+  var el = document.getElementById("device_id");
+  if (el) el.value = localStorage.getItem("gtj_device_id");
+})();
+</script>
+
 
 </body>
 </html>

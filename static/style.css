@@ -286,14 +286,22 @@ textarea {
   font-weight: 800;
 }
 
-/* ---------- Footer ---------- */
+/* Global links */
+a {
+  color: inherit;
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
+
 /* Footer */
-.site-footer{
+.site-footer {
   margin-top: 16px;
   padding: 10px 2px;
-  text-align:center;
+  text-align: center;
   color: rgba(255,255,255,.50);
-  font-size: 12.5px;
+  font-size: 15.5px;
 }
 
 /* ---------- Preview Back Button ---------- */

@@ -14,6 +14,8 @@ from collections import defaultdict, deque
 from itsdangerous import URLSafeSerializer, BadSignature
 import logging
 import stripe
+import sqlite3
+
 
 # --------------------
 # Analytics (admin-only)
@@ -111,7 +113,17 @@ def set_used_cookie(resp, used: int) -> None:
 
 
 def is_pro_user() -> bool:
-    return request.cookies.get(PRO_COOKIE) == "1"
+    if request.cookies.get(PRO_COOKIE) != "1":
+        return False
+
+    device_id = get_device_cookie()
+    customer_id = get_customer_cookie()
+
+    if not device_id or not customer_id:
+        return False
+
+    return has_device(customer_id, device_id)
+
 
 
 def set_pro_cookie(resp):
@@ -123,6 +135,114 @@ def set_pro_cookie(resp):
         samesite="Lax",
         secure=bool(os.environ.get("RENDER")),
     )
+
+DEVICE_COOKIE = "gtj_device"
+
+def set_device_cookie(resp, device_id: str):
+    token = _signer.dumps(device_id)
+    resp.set_cookie(
+        DEVICE_COOKIE,
+        token,
+        max_age=60 * 60 * 24 * 365,
+        httponly=True,
+        samesite="Lax",
+        secure=bool(os.environ.get("RENDER")),
+    )
+
+
+def get_device_cookie() -> str | None:
+    raw = request.cookies.get(DEVICE_COOKIE)
+    if not raw:
+        return None
+    try:
+        return _signer.loads(raw)
+    except BadSignature:
+        return None
+
+CUSTOMER_COOKIE = "gtj_customer"
+
+def set_customer_cookie(resp, customer_id: str):
+    token = _signer.dumps(customer_id)
+    resp.set_cookie(
+        CUSTOMER_COOKIE,
+        token,
+        max_age=60 * 60 * 24 * 365,
+        httponly=True,
+        samesite="Lax",
+        secure=bool(os.environ.get("RENDER")),
+    )
+
+
+def get_customer_cookie() -> str | None:
+    raw = request.cookies.get(CUSTOMER_COOKIE)
+    if not raw:
+        return None
+    try:
+        return _signer.loads(raw)
+    except BadSignature:
+        return None
+
+
+# --------------------
+# Pro devices (SQLite)
+# --------------------
+MAX_DEVICES = 2
+DB_PATH = os.environ.get("PRO_DB_PATH", "pro_devices.db")
+
+def db_conn():
+    conn = sqlite3.connect(DB_PATH)
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS pro_devices (
+            customer_id TEXT NOT NULL,
+            device_id   TEXT NOT NULL,
+            created_at  INTEGER NOT NULL,
+            last_seen   INTEGER NOT NULL,
+            PRIMARY KEY (customer_id, device_id)
+        )
+    """)
+    return conn
+
+
+def get_device_count(customer_id: str) -> int:
+    conn = db_conn()
+    try:
+        row = conn.execute(
+            "SELECT COUNT(*) FROM pro_devices WHERE customer_id = ?",
+            (customer_id,)
+        ).fetchone()
+        return int(row[0] or 0)
+    finally:
+        conn.close()
+
+
+def has_device(customer_id: str, device_id: str) -> bool:
+    conn = db_conn()
+    try:
+        row = conn.execute(
+            "SELECT 1 FROM pro_devices WHERE customer_id = ? AND device_id = ?",
+            (customer_id, device_id)
+        ).fetchone()
+        return row is not None
+    finally:
+        conn.close()
+
+
+def add_or_touch_device(customer_id: str, device_id: str) -> None:
+    now = int(time.time())
+    conn = db_conn()
+    try:
+        conn.execute(
+            """
+            INSERT INTO pro_devices (customer_id, device_id, created_at, last_seen)
+            VALUES (?, ?, ?, ?)
+            ON CONFLICT(customer_id, device_id) DO UPDATE SET last_seen = excluded.last_seen
+            """,
+            (customer_id, device_id, now, now)
+        )
+        conn.commit()
+    finally:
+        conn.close()
+
 
 # --------------------
 # Routes
@@ -204,7 +324,10 @@ def upgrade_success():
             is_pro=True
         )
     )
+
     set_pro_cookie(resp)
+
+    # Device + customer will be attached on first restore
     return resp
 
 
@@ -214,11 +337,20 @@ def upgrade_success():
 @app.post("/restore-pro")
 def restore_pro():
     email = request.form.get("email", "").strip().lower()
+    device_id = request.form.get("device_id", "").strip()
 
     if not email:
         return render_template(
             "upgrade.html",
             restore_error="Please enter the email you used at checkout.",
+            restored=False,
+            is_pro=False
+        )
+
+    if not device_id:
+        return render_template(
+            "upgrade.html",
+            restore_error="Could not verify this device. Please refresh and try again.",
             restored=False,
             is_pro=False
         )
@@ -252,6 +384,22 @@ def restore_pro():
             is_pro=False
         )
 
+    # --------------------
+    # DEVICE LIMIT ENFORCEMENT
+    # --------------------
+    if not has_device(customer_id, device_id):
+        count = get_device_count(customer_id)
+        if count >= MAX_DEVICES:
+            return render_template(
+                "upgrade.html",
+                restore_error="Pro access is already active on two devices. Please use one of your existing devices.",
+                restored=False,
+                is_pro=False
+            )
+        add_or_touch_device(customer_id, device_id)
+    else:
+        add_or_touch_device(customer_id, device_id)
+
     resp = make_response(
         render_template(
             "upgrade.html",
@@ -260,7 +408,11 @@ def restore_pro():
             is_pro=True
         )
     )
+
     set_pro_cookie(resp)
+    set_device_cookie(resp, device_id)
+    set_customer_cookie(resp, customer_id)
+
     return resp
 
 
