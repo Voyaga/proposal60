@@ -377,33 +377,59 @@ def admin_analytics():
     if key != os.environ.get("ADMIN_KEY"):
         return "Forbidden", 403
 
+    # ---- trade counts ----
     trade_counts = {}
-
     for e in ANALYTICS_EVENTS:
         if e["event"] == "trade_selected":
             trade = e["data"].get("trade")
             if trade:
                 trade_counts[trade] = trade_counts.get(trade, 0) + 1
 
+    # ---- base counts ----
+    landing_views = sum(
+        1 for e in ANALYTICS_EVENTS
+        if e["event"] == "page_view" and e["data"].get("page") == "landing"
+    )
+
+    app_views = sum(
+        1 for e in ANALYTICS_EVENTS
+        if e["event"] == "page_view" and e["data"].get("page") == "app"
+    )
+
+    generates = sum(
+        1 for e in ANALYTICS_EVENTS
+        if e["event"] == "generate_attempt"
+    )
+
+    pdfs = sum(
+        1 for e in ANALYTICS_EVENTS
+        if e["event"] == "pdf_download"
+    )
+
+    def pct(a, b):
+        return round((a / b) * 100) if b else 0
+
+    # ---- stats payload ----
     stats = {
         "page_views": sum(1 for e in ANALYTICS_EVENTS if e["event"] == "page_view"),
-        "generates": sum(1 for e in ANALYTICS_EVENTS if e["event"] == "generate_attempt"),
-        "pdfs": sum(1 for e in ANALYTICS_EVENTS if e["event"] == "pdf_download"),
+        "generates": generates,
+        "pdfs": pdfs,
 
-        # generation mode (placeholders for now)
+        # generation mode
         "ai": sum(1 for e in ANALYTICS_EVENTS if e["event"] == "ai_used"),
         "fallback": sum(1 for e in ANALYTICS_EVENTS if e["event"] == "fallback_used"),
 
-        "trades": trade_counts,  # ← THIS WAS MISSING
+        # trades
+        "trades": trade_counts,
 
-        # funnel (safe defaults)
+        # funnel (REAL, calculated)
         "funnel": {
-            "landing_to_app": 0,
-            "app_to_generate": 0,
-            "generate_to_pdf": 0,
+            "landing_to_app": pct(app_views, landing_views),
+            "app_to_generate": pct(generates, app_views),
+            "generate_to_pdf": pct(pdfs, generates),
         },
 
-        # friction signals (NEW, safe)
+        # friction signals
         "hesitations": sum(
             1 for e in ANALYTICS_EVENTS
             if e["event"] == "first_interaction"
@@ -419,6 +445,7 @@ def admin_analytics():
         ),
     }
 
+    # ---- recent activity ----
     recent = [
         f"{time.strftime('%H:%M:%S', time.localtime(e['ts']))} — "
         f"{e['event']} {e['data']}"
@@ -430,6 +457,7 @@ def admin_analytics():
         stats=stats,
         recent=recent
     )
+
 
 # --------------------
 # Stripe Billing Portal (Cancel / Manage)
@@ -762,7 +790,9 @@ def pdf():
         download_name="proposal.pdf",
     )
 
+
 @app.route("/stripe/webhook", methods=["POST"])
+@app.route("/stripe/webhook/", methods=["POST"])
 def stripe_webhook():
     payload = request.data
     sig = request.headers.get("Stripe-Signature")
