@@ -1,0 +1,379 @@
+:root{
+  --bg-black: #000000;
+
+  /* LCARS palette (TNG era) */
+  --lcars-orange: #ff9f1c;
+  --lcars-peach:  #ffb347;
+  --lcars-purple: #b48cff;
+  --lcars-blue:   #5cc8ff;
+  --lcars-cyan:   #6df6ff;
+  --lcars-green:  #5cff9d;
+
+  --text-main: #ffffff;
+  --text-dim:  #bdbdbd;
+}
+
+*{
+  box-sizing: border-box;
+}
+
+body{
+  margin: 0;
+  background: var(--bg-black);
+  font-family: Orbitron, Helvetica, sans-serif;
+  color: var(--text-main);
+}
+
+/* ---------- MAIN WRAP ---------- */
+.wrap{
+  position: relative;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 40px 60px 120px;
+  counter-reset: section;
+}
+
+/* ---------- LCARS LEFT COLUMN ---------- */
+.wrap::before{
+  content:"";
+  position:absolute;
+  left: 20px;
+  top: 40px;
+  width: 70px;
+  height: calc(100% - 80px);
+  background:
+    linear-gradient(
+      to bottom,
+      var(--lcars-orange) 0%,
+      var(--lcars-orange) 18%,
+      var(--lcars-purple) 18%,
+      var(--lcars-purple) 40%,
+      var(--lcars-blue)   40%,
+      var(--lcars-blue)   65%,
+      var(--lcars-green)  65%,
+      var(--lcars-green)  100%
+    );
+  border-radius: 40px;
+}
+
+/* ---------- HEADER ---------- */
+h1{
+  margin: 0;
+  font-size: 22px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.subhead{
+  margin: 6px 0 28px;
+  font-size: 16px;
+  letter-spacing: 1.4px;
+  color: var(--text-dim);
+}
+
+/* ---------- KPI GRID ---------- */
+.analytics-grid{
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px,1fr));
+  gap: 18px;
+  margin-bottom: 32px;
+}
+
+.stat-card{
+  position: relative;
+  background: var(--lcars-orange);
+  color: #000;
+  padding: 16px 18px;
+  border-radius: 26px 6px 26px 6px;
+}
+
+.stat-card:nth-child(2){
+  background: var(--lcars-purple);
+}
+.stat-card:nth-child(3){
+  background: var(--lcars-blue);
+}
+
+.stat-label{
+  font-size: 10px;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+}
+
+.stat-value{
+  font-size: 26px;
+  margin-top: 4px;
+  font-weight: bold;
+}
+
+/* ---------- PANELS ---------- */
+.panel{
+  position: relative;
+  margin-bottom: 26px;
+  padding: 18px 22px;
+  background: #000;
+  border-left: 16px solid var(--lcars-peach);
+  border-radius: 0 32px 32px 0;
+  counter-increment: section;
+}
+
+/* LCARS elbow */
+.panel::after{
+  content:"";
+  position:absolute;
+  left: -16px;
+  bottom: -12px;
+  width: 40px;
+  height: 12px;
+  background: var(--lcars-peach);
+  border-radius: 0 0 12px 12px;
+}
+
+/* LCARS header tab */
+.panel h2{
+  margin: 0 0 14px;
+  padding: 6px 14px;
+  display: inline-block;
+  background: var(--lcars-peach);
+  color: #000;
+  font-size: 16px;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+  border-radius: 0 16px 16px 0;
+}
+
+/* section numbers */
+.panel h2::before{
+  content: counter(section, decimal-leading-zero) " ";
+  margin-right: 8px;
+  opacity: .7;
+}
+
+/* ---------- SPLIT ---------- */
+.split{
+  display: flex;
+  gap: 36px;
+}
+
+.split strong{
+  display: block;
+  font-size: 16px;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+/* ---------- LISTS ---------- */
+ul{
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.activity li,
+.funnel li{
+  position: relative;
+  padding: 6px 0 6px 16px;
+  font-size: 18px;
+  color: var(--text-dim);
+}
+
+/* LCARS list pill */
+.activity li::before,
+.funnel li::before{
+  content:"";
+  position:absolute;
+  left: 0;
+  top: 50%;
+  width: 8px;
+  height: 8px;
+  background: var(--lcars-orange);
+  border-radius: 50%;
+  transform: translateY(-50%);
+}
+
+/* emphasize values */
+.activity strong,
+.funnel strong{
+  color: var(--lcars-cyan);
+  letter-spacing: .6px;
+}
+
+/* ---------- FOOTER ---------- */
+.site-footer{
+  margin-top: 42px;
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  text-align: right;
+}
+
+/* ============================= */
+/* LCARS SYSTEM ANIMATIONS (TNG) */
+/* ============================= */
+
+/* subtle pulse in left LCARS column */
+.wrap::before{
+  animation: lcars-column-pulse 18s linear infinite;
+}
+
+@keyframes lcars-column-pulse{
+  0%   { filter: brightness(1); }
+  50%  { filter: brightness(1.12); }
+  100% { filter: brightness(1); }
+}
+
+/* slow activity sweep across panel edges */
+.panel::before{
+  content:"";
+  position:absolute;
+  top: 0;
+  left: -40%;
+  width: 40%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255,255,255,.08),
+    transparent
+  );
+  animation: lcars-panel-sweep 22s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes lcars-panel-sweep{
+  0%   { left: -40%; }
+  35%  { left: 110%; }
+  100% { left: 110%; }
+}
+
+/* status heartbeat on KPI cards */
+.stat-card{
+  animation: lcars-kpi-breathe 12s ease-in-out infinite;
+}
+
+@keyframes lcars-kpi-breathe{
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.015); }
+  100% { transform: scale(1); }
+}
+
+/* idle blink on list pills */
+.activity li::before,
+.funnel li::before{
+  animation: lcars-pill-blink 8s steps(1) infinite;
+}
+
+@keyframes lcars-pill-blink{
+  0%   { opacity: .9; }
+  80%  { opacity: .9; }
+  85%  { opacity: .3; }
+  90%  { opacity: .9; }
+  100% { opacity: .9; }
+}
+
+/* ===================== */
+/* LCARS ALERT STATES   */
+/* ===================== */
+
+/* -------- CONDITION YELLOW -------- */
+body.alert-yellow{
+  --lcars-peach: #ffd24d;
+  --lcars-orange: #ffc107;
+}
+
+body.alert-yellow .wrap::before{
+  animation: alert-yellow-pulse 6s linear infinite;
+}
+
+@keyframes alert-yellow-pulse{
+  0%   { filter: brightness(1); }
+  50%  { filter: brightness(1.25); }
+  100% { filter: brightness(1); }
+}
+
+body.alert-yellow .panel{
+  border-left-color: var(--lcars-orange);
+}
+
+/* yellow scanline during yellow alert */
+body.alert-yellow .panel::before{
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255,200,0,.18),
+    transparent
+  );
+}
+
+
+body.alert-yellow .panel h2{
+  background: var(--lcars-orange);
+}
+
+
+/* -------- CONDITION RED -------- */
+body.alert-red{
+  --lcars-peach: #ff5c5c;
+  --lcars-orange: #ff3b3b;
+  --lcars-purple: #ff6b6b;
+}
+
+body.alert-red .wrap::before{
+  animation: alert-red-flash 2.5s linear infinite;
+}
+
+@keyframes alert-red-flash{
+  0%   { filter: brightness(1); }
+  50%  { filter: brightness(1.45); }
+  100% { filter: brightness(1); }
+}
+
+body.alert-red .panel{
+  border-left-color: var(--lcars-orange);
+}
+
+body.alert-red .panel h2{
+  background: var(--lcars-orange);
+}
+
+/* subtle red scanline during red alert */
+body.alert-red .panel::before{
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255,80,80,.15),
+    transparent
+  );
+  animation-duration: 8s;
+}
+
+/* ===================== */
+/* ALERT OVERRIDES FIX  */
+/* ===================== */
+
+body.alert-yellow .stat-card{
+  background: var(--lcars-orange) !important;
+}
+
+body.alert-red .stat-card{
+  background: var(--lcars-orange) !important;
+}
+
+/* --- System ID / version badge --- */
+.wrap::after{
+  content: "LCARS • OPS 47-A • REV 1.2";
+  position: absolute;
+  right: 24px;
+  bottom: 12px;
+
+  font-size: 10px;
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
+
+  color: var(--text-dim);
+  opacity: 0.75;
+  pointer-events: none;
+}
+

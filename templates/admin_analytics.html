@@ -5,11 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Analytics — Get The Job</title>
   <link rel="icon" href="/static/favicon.ico">
-  <link rel="stylesheet" href="/static/admin_hud.css">
+  <link rel="stylesheet" href="/static/admin_hud_tng.css">
 
 </head>
 
 <body>
+<!-- <body class="alert-yellow"> -->
+<!-- <body class="alert-red"> -->
+
+
 
   <div class="wrap">
 
@@ -87,6 +91,21 @@
         {% endfor %}
       </ul>
     </div>
+
+    <div class="panel">
+      <h2>Upgrade intent</h2>
+      <ul class="activity">
+        <li>
+          <strong>Upgrade page views:</strong>
+          {{ stats.upgrade_page_views | default(0) }}
+        </li>
+        <li>
+          <strong>Upgrade button clicks:</strong>
+          {{ stats.upgrade_cta_clicks | default(0) }}
+        </li>
+      </ul>
+    </div>
+
 
     <!-- Trades -->
 <div class="panel">

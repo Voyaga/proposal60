@@ -386,6 +386,18 @@ def admin_analytics():
                 trade_counts[trade] = trade_counts.get(trade, 0) + 1
 
     # ---- base counts ----
+
+    upgrade_page_views = sum(
+        1 for e in ANALYTICS_EVENTS
+        if e["event"] == "page_view"
+        and e["data"].get("page") == "upgrade"
+    )
+
+    upgrade_cta_clicks = sum(
+        1 for e in ANALYTICS_EVENTS
+        if e["event"] == "upgrade_cta_click"
+    )
+
     landing_views = sum(
         1 for e in ANALYTICS_EVENTS
         if e["event"] == "page_view" and e["data"].get("page") == "landing"
@@ -428,6 +440,9 @@ def admin_analytics():
             "app_to_generate": pct(generates, app_views),
             "generate_to_pdf": pct(pdfs, generates),
         },
+
+        "upgrade_page_views": upgrade_page_views,
+        "upgrade_cta_clicks": upgrade_cta_clicks,
 
         # friction signals
         "hesitations": sum(

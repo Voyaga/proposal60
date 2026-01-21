@@ -28,9 +28,14 @@
   </div>
 
   {% if not is_pro %}
-    <a href="/upgrade" class="btn hero-cta brand-upgrade">
+    <a
+      href="/upgrade"
+      class="btn hero-cta brand-upgrade"
+      onclick="trackClientEvent('upgrade_cta_click')"
+    >
       Upgrade Now
     </a>
+
   {% endif %}
 </div>
 
@@ -120,8 +125,9 @@
         ></textarea>
 
         <p class="helper">
-          Tip: keep scope as short bullet notes for best results.
+          Tip: Use short bullet notes — each point will be expanded into a clear, professional scope description.
         </p>
+
 
         <label>Price</label>
         <input name="price" placeholder="e.g., $2,450 incl GST" />

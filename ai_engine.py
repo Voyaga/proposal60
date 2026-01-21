@@ -136,8 +136,9 @@ Service: {service_type}
 Tone guidance:
 {tone_instruction}
 
-Locked Scope of Work (MUST use exactly these bullets; do not add or remove items):
+Locked Scope of Work bullets (use each bullet as a heading; do not add or remove items):
 {locked_scope}
+
 """
 
     if timeframe:
@@ -160,7 +161,9 @@ Then include these sections in order:
 
 {chr(10).join(sections)}
 
-- The Overview must be 4–5 sentences and explain the purpose of the work, safety or compliance considerations, and the intended outcome.
+- The Overview must be 4–5 sentences and describe the work only in general terms based on the service type and scope notes.
+- Do NOT name specific components, methods, standards, testing, or safety details unless they are explicitly provided by the user.
+
 - After the final section, leave one blank line.
 - End the proposal with:
   "Kind regards,"
@@ -172,7 +175,13 @@ Rules:
 - Do NOT invent, infer, or estimate timeframes.
 - If a Timeframe section is included, use the supplied wording only.
 - Do NOT include Timeline or Payment Terms sections.
-- Scope of Work must reproduce the locked bullets exactly (grammar fixes allowed only).
+
+- Scope of Work must include all locked bullets as headings.
+- Under each bullet, add ONE short sentence that restates the bullet in slightly clearer plain language.
+- Do NOT specify items, materials, components, locations, methods, safety steps, or assumptions unless they are explicitly written in the bullet.
+- If a bullet is generic, the explanatory sentence must remain equally generic.
+
+
 - Pricing must reflect the provided price or state that pricing is to be confirmed.
 - Acceptance / Next Steps must NOT request a signature.
 - Do NOT ask the client to sign or return the proposal.

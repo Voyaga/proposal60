@@ -29,7 +29,13 @@
 
         {% if not is_pro %}
           <div style="margin-top:16px;">
-            <a href="/upgrade" class="btn">Upgrade to Pro</a>
+            <a
+              href="/upgrade"
+              class="btn"
+              onclick="trackClientEvent('upgrade_blocked_click')"
+            >
+              Upgrade to Pro
+            </a>
           </div>
         {% endif %}
       </div>
