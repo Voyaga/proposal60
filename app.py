@@ -14,7 +14,7 @@ from collections import defaultdict, deque
 from itsdangerous import URLSafeSerializer, BadSignature
 import logging
 import stripe
-import sqlite3
+
 
 
 # --------------------
@@ -116,13 +116,14 @@ def is_pro_user() -> bool:
     if request.cookies.get(PRO_COOKIE) != "1":
         return False
 
-    device_id = get_device_cookie()
-    customer_id = get_customer_cookie()
-
-    if not device_id or not customer_id:
+    if not get_device_cookie():
         return False
 
-    return has_device(customer_id, device_id)
+    if not get_customer_cookie():
+        return False
+
+    return True
+
 
 
 
@@ -183,65 +184,6 @@ def get_customer_cookie() -> str | None:
         return None
 
 
-# --------------------
-# Pro devices (SQLite)
-# --------------------
-MAX_DEVICES = 2
-DB_PATH = os.environ.get("PRO_DB_PATH", "pro_devices.db")
-
-def db_conn():
-    conn = sqlite3.connect(DB_PATH)
-    conn.execute("""
-        CREATE TABLE IF NOT EXISTS pro_devices (
-            customer_id TEXT NOT NULL,
-            device_id   TEXT NOT NULL,
-            created_at  INTEGER NOT NULL,
-            last_seen   INTEGER NOT NULL,
-            PRIMARY KEY (customer_id, device_id)
-        )
-    """)
-    return conn
-
-
-def get_device_count(customer_id: str) -> int:
-    conn = db_conn()
-    try:
-        row = conn.execute(
-            "SELECT COUNT(*) FROM pro_devices WHERE customer_id = ?",
-            (customer_id,)
-        ).fetchone()
-        return int(row[0] or 0)
-    finally:
-        conn.close()
-
-
-def has_device(customer_id: str, device_id: str) -> bool:
-    conn = db_conn()
-    try:
-        row = conn.execute(
-            "SELECT 1 FROM pro_devices WHERE customer_id = ? AND device_id = ?",
-            (customer_id, device_id)
-        ).fetchone()
-        return row is not None
-    finally:
-        conn.close()
-
-
-def add_or_touch_device(customer_id: str, device_id: str) -> None:
-    now = int(time.time())
-    conn = db_conn()
-    try:
-        conn.execute(
-            """
-            INSERT INTO pro_devices (customer_id, device_id, created_at, last_seen)
-            VALUES (?, ?, ?, ?)
-            ON CONFLICT(customer_id, device_id) DO UPDATE SET last_seen = excluded.last_seen
-            """,
-            (customer_id, device_id, now, now)
-        )
-        conn.commit()
-    finally:
-        conn.close()
 
 
 # --------------------
@@ -385,20 +327,30 @@ def restore_pro():
         )
 
     # --------------------
-    # DEVICE LIMIT ENFORCEMENT
+    # DEVICE LIMIT (Stripe metadata)
     # --------------------
-    if not has_device(customer_id, device_id):
-        count = get_device_count(customer_id)
-        if count >= MAX_DEVICES:
+    MAX_DEVICES = 2
+
+    cust = stripe.Customer.retrieve(customer_id)
+    devices_raw = (cust.metadata or {}).get("pro_devices", "")
+    devices = [d for d in devices_raw.split(",") if d]
+
+    if device_id not in devices:
+        if len(devices) >= MAX_DEVICES:
             return render_template(
                 "upgrade.html",
-                restore_error="Pro access is already active on two devices. Please use one of your existing devices.",
+                restore_error="Pro access is already active on two devices.",
                 restored=False,
                 is_pro=False
             )
-        add_or_touch_device(customer_id, device_id)
-    else:
-        add_or_touch_device(customer_id, device_id)
+        devices.append(device_id)
+
+    stripe.Customer.modify(
+        customer_id,
+        metadata={
+            "pro_devices": ",".join(devices)
+        }
+    )
 
     resp = make_response(
         render_template(
