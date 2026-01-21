@@ -1,0 +1,162 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Get The Job — Write Better Quotes Faster</title>
+  <meta name="description" content="Professional quotes in under a minute. Built for trades and service businesses." />
+  <link rel="icon" href="/static/favicon.ico">
+
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+
+  <div class="wrap landing">
+
+    <!-- HERO -->
+    <section class="hero section">
+      <h1 class="brand">GET THE JOB</h1>
+
+      <h2>
+        Stop Writing Quotes.
+        Start Winning Jobs.
+      </h2>
+
+      <p class="hero-sub">
+        *Professional quotes in under a minute.<br>
+        No templates. No rewrites. No time wasted.
+      </p>
+
+      <div class="hero-points">
+        <span>Free to try</span>
+        <span>Instant access</span>
+        <span>Upgrade anytime</span>
+      </div>
+
+      <!-- Primary + Secondary CTA -->
+      <div class="actions" style="justify-content:center; margin-top:24px;">
+        <a href="/app" class="btn hero-cta">
+          Write My Quote Now →
+        </a>
+        {% if not is_pro %}
+          <a href="/upgrade" class="btn secondary">
+            Upgrade to Pro
+          </a>
+        {% endif %}
+      </div>
+
+      <p class="fineprint">
+        Takes 60 seconds. Seriously.
+      </p>
+    </section>
+
+    <!-- PROBLEM -->
+    <section class="section panel">
+      <h2>Tired of copying old quotes?</h2>
+
+      <p>
+        Get The Job is built for electricians, plumbers, builders, cleaners,
+        HVAC techs, and service businesses who waste hours every week
+        rewording the same jobs.
+      </p>
+
+      <p class="strong">
+        You enter the job details.<br>
+        <strong>We handle the wording.</strong>
+      </p>
+    </section>
+
+    <!-- HOW IT WORKS -->
+    <section class="section">
+      <h2>How it works</h2>
+
+      <div class="steps">
+        <div class="step">
+          <strong>1. Job details</strong><br>
+          Client name, scope, price. Done.
+        </div>
+
+        <div class="step">
+          <strong>2. We write it</strong><br>
+          Professional, no-fluff wording in under 60 seconds.
+        </div>
+
+        <div class="step">
+          <strong>3. You send it</strong><br>
+          Download as PDF or copy-paste. Your choice.
+        </div>
+      </div>
+
+      <p class="fineprint">
+        Includes 3 free quotes. Unlimited with Pro.
+      </p>
+    </section>
+
+    <!-- WHAT CLIENT RECEIVES -->
+    <section class="section panel">
+      <h2>What your client receives</h2>
+
+      <p>
+        Every quote is structured to be clear, readable, and easy to approve:
+      </p>
+
+      <ul class="feature-list">
+        <li>Clear scope of works</li>
+        <li>Professional, trade-appropriate language</li>
+        <li>Pricing presented cleanly</li>
+        <li>Your business details included</li>
+        <li>No fluff, no AI buzzwords</li>
+      </ul>
+    </section>
+
+    <!-- PRIVACY -->
+    <section class="section notice">
+      <strong>Your data stays private.</strong><br>
+      We don’t store your quote content.
+      Everything is generated on demand.
+    </section>
+
+    <!-- FINAL CTA -->
+    <section class="section final-cta">
+      <h2>Ready to send your next quote?</h2>
+
+      <p>
+        Stop overthinking it. Generate a clean quote and get it out the door.
+      </p>
+
+      <div class="actions" style="justify-content:center;">
+        <a href="/app" class="btn">
+          Write My Next Quote Free →
+        </a>
+        {% if not is_pro %}
+          <a href="/upgrade" class="btn secondary">
+            Upgrade to Pro
+          </a>
+        {% endif %}
+      </div>
+
+      <p class="fineprint">
+        Unlimited proposals and PDF export with Pro.<br>*Timing may vary based on network conditions.
+      </p>
+    </section>
+
+  </div>
+
+  <footer class="site-footer">
+  © Get The Job ·
+  <a href="/terms">Terms</a> ·
+  <a href="/privacy">Privacy</a> ·
+  <a href="/">Home</a> ·
+  <a
+    href="https://forms.gle/5cfy2Kx8sRRnrogt8"
+    target="_blank"
+    rel="noopener"
+  >
+    Give feedback
+  </a>
+</footer>
+
+
+</body>
+</html>

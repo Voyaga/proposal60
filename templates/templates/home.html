@@ -1,0 +1,393 @@
+<!doctype html>
+<!--suppress ALL -->
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Create Proposal — Get The Job</title>
+  <link rel="icon" href="/static/favicon.ico">
+  <link rel="stylesheet" href="/static/style2.css">
+</head>
+
+<body>
+
+<div class="wrap">
+
+  {% if is_pro %}
+    <div class="pro-badge">Pro Version</div>
+  {% endif %}
+
+  <!-- Brand -->
+ <div class="brand">
+  <div class="brand-left">
+    <div class="brand-mark">GTJ</div>
+    <div>
+      <div class="brand-name">Get The Job</div>
+      <div class="brand-tag">Client-ready proposals that help win the job.</div>
+    </div>
+  </div>
+
+  {% if not is_pro %}
+    <a href="/upgrade" class="btn hero-cta brand-upgrade">
+      Upgrade Now
+    </a>
+  {% endif %}
+</div>
+
+
+  <div class="layout">
+
+    <!-- LEFT: Recent proposals -->
+    <aside class="sidebar">
+      <h2>Recent proposals</h2>
+      <p class="helper">Click a proposal to reuse it</p>
+      <ul id="recentList"></ul>
+    </aside>
+
+    <!-- RIGHT: Main form -->
+    <main class="content">
+
+      <!-- Logo -->
+      <div class="logo-uploader">
+        <label class="logo-dropzone" for="logoInput">
+          <div id="logoSizeNotice" class="helper" hidden>
+            Logo must be 300KB or under
+          </div>
+          <input type="file" id="logoInput" accept="image/*" hidden>
+          <span class="logo-text" id="logoPlaceholder">Add your business logo</span>
+          <img id="logoPreview" alt="" hidden />
+        </label>
+
+        <button type="button" id="removeLogo" class="logo-remove" hidden>
+          Remove
+        </button>
+      </div>
+
+      <h1>Send a professional proposal in 60 seconds.</h1>
+      <p class="subhead">Client-ready proposals, built for real work.</p>
+
+      <form id="proposalForm" method="POST" action="/generate">
+
+        <!-- Business details (persistent) -->
+        <label>Your business name</label>
+        <input id="bizName" name="your_business" placeholder="e.g., Neo Electrical" />
+
+        <label>ABN</label>
+        <input id="bizAbn" name="abn" placeholder="e.g., 12 345 678 901" />
+
+        <label>Phone</label>
+        <input id="bizPhone" name="phone" placeholder="e.g., 04xx xxx xxx" />
+
+        <label>Email</label>
+        <input id="bizEmail" name="email" placeholder="e.g., hello@yourbusiness.com" />
+
+        <!-- Job details -->
+        <label>Type of work / trade</label>
+        <select name="trade">
+          <option value="general">General Trade</option>
+
+          <option value="electrician">Electrician</option>
+          <option value="plumber">Plumber</option>
+          <option value="builder">Builder / Renovation</option>
+          <option value="hvac">HVAC</option>
+
+          <option value="carpenter">Carpenter / Joiner</option>
+          <option value="tiler">Tiler</option>
+          <option value="painter">Painter</option>
+          <option value="landscaper">Landscaper</option>
+          <option value="concreter">Concreter</option>
+          <option value="roofer">Roofer</option>
+          <option value="glazier">Glazier</option>
+          <option value="flooring">Flooring</option>
+          <option value="handyman">Handyman</option>
+
+          <option value="cleaner">Cleaning</option>
+
+        </select>
+
+        <label>Client name *</label>
+        <input name="client_name" required />
+
+        <label>Service type</label>
+        <input name="service_type" placeholder="e.g., Bathroom renovation" />
+
+        <label>Scope (bullet notes) *</label>
+        <textarea
+          name="scope"
+          rows="6"
+          required
+          placeholder="- Supply and install&#10;- Remove old&#10;- Test on completion"
+        ></textarea>
+
+        <p class="helper">
+          Tip: keep scope as short bullet notes for best results.
+        </p>
+
+        <label>Price</label>
+        <input name="price" placeholder="e.g., $2,450 incl GST" />
+
+        <label>Estimated timeframe (optional)</label>
+        <input
+          name="timeframe"
+          placeholder="e.g. 1–2 days on site or within 2 weeks of approval"
+        />
+
+        <p class="helper">
+          This is indicative only — avoid exact dates if timing may change.
+        </p>
+
+
+        <label>Tone</label>
+        <select name="tone">
+          <option>Professional</option>
+          <option>Friendly</option>
+          <option>Direct</option>
+        </select>
+
+        <button id="generateBtn" class="btn" type="submit">
+          Write My Quote →
+        </button>
+
+      </form>
+    </main>
+  </div>
+
+     <h2 class="center-note">
+  Proposal generations sometimes may take a short while to generate
+</h2>
+
+
+
+
+{% if is_pro %}
+  <h4>You can cancel your subscription below</h4>
+  <div class="billing-wrap">
+    <form method="POST" action="/billing-portal" style="margin-top:14px;">
+      <input
+        type="email"
+        name="email"
+        required
+        placeholder="Email used at checkout"
+      >
+      <button class="btn secondary" style="margin-top:8px;">
+        Cancel subscription
+      </button>
+    </form>
+  </div>
+{% endif %}
+
+
+
+  <footer class="site-footer">
+  © Get The Job ·
+  <a href="/terms">Terms</a> ·
+  <a href="/privacy">Privacy</a> ·
+  <a href="/">Home</a> ·
+  <a
+    href="https://forms.gle/5cfy2Kx8sRRnrogt8"
+    target="_blank"
+    rel="noopener"
+  >
+    Give feedback
+  </a>
+</footer>
+
+
+
+</div>
+
+<script>
+/* ------------------ Recents ------------------ */
+
+const HISTORY_KEY = "gtj_proposal_history";
+const ACTIVE_KEY = "gtj_active_proposal";
+
+function loadHistory() {
+  try { return JSON.parse(localStorage.getItem(HISTORY_KEY)) || []; }
+  catch { return []; }
+}
+
+function saveHistory(history) {
+  localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+}
+
+function removeHistoryItem(index) {
+  const history = loadHistory();
+  history.splice(index, 1);
+  saveHistory(history);
+  renderRecent();
+}
+
+function renderRecent() {
+  const list = document.getElementById("recentList");
+  if (!list) return;
+
+  const history = loadHistory();
+  if (!history.length) {
+    list.innerHTML = "<li class='helper'>No recent proposals yet.</li>";
+    return;
+  }
+
+  list.innerHTML = "";
+  history.forEach((item, index) => {
+    const li = document.createElement("li");
+    li.className = "recent-item";
+    li.innerHTML = `
+      <div class="recent-main">
+        <strong>${item.client}</strong><br>
+        <span>${item.service}</span>
+      </div>
+      <button class="recent-delete">✕</button>
+    `;
+    li.querySelector(".recent-main").onclick = () => {
+      localStorage.setItem(ACTIVE_KEY, JSON.stringify(item));
+      window.location.href = "/preview";
+    };
+    li.querySelector(".recent-delete").onclick = e => {
+      e.stopPropagation();
+      removeHistoryItem(index);
+    };
+    list.appendChild(li);
+  });
+}
+
+document.addEventListener("DOMContentLoaded", renderRecent);
+
+/* ------------------ Logo ------------------ */
+
+const LOGO_KEY = "gtj_business_logo";
+const logoInput = document.getElementById("logoInput");
+const logoPreview = document.getElementById("logoPreview");
+const logoPlaceholder = document.getElementById("logoPlaceholder");
+const removeLogoBtn = document.getElementById("removeLogo");
+
+function loadLogo() {
+  const data = localStorage.getItem(LOGO_KEY);
+  if (!data) {
+    logoPreview.hidden = true;
+    logoPreview.src = "";
+    logoPlaceholder.style.display = "inline";
+    removeLogoBtn.hidden = true;
+    return;
+  }
+  logoPreview.src = data;
+  logoPreview.hidden = false;
+  logoPlaceholder.style.display = "none";
+  removeLogoBtn.hidden = false;
+}
+
+const MAX_LOGO_SIZE = 333 * 1024; // real limit (333KB)
+
+const logoSizeNotice = document.getElementById("logoSizeNotice");
+
+logoInput.addEventListener("change", () => {
+  const file = logoInput.files[0];
+  if (!file) return;
+
+  // Size gate
+  if (file.size > MAX_LOGO_SIZE) {
+    logoSizeNotice.hidden = false;
+    logoInput.value = ""; // reset chooser
+
+    trackClientEvent("logo_rejected", {
+    size_kb: Math.round(file.size / 1024)
+  });
+
+    setTimeout(() => {
+      logoSizeNotice.hidden = true;
+    }, 5000);
+
+    return;
+  }
+
+  logoSizeNotice.hidden = true;
+
+  const reader = new FileReader();
+  reader.onload = () => {
+    localStorage.setItem(LOGO_KEY, reader.result);
+    loadLogo();
+  };
+  reader.readAsDataURL(file);
+});
+
+
+removeLogoBtn.addEventListener("click", () => {
+  localStorage.removeItem(LOGO_KEY);
+  loadLogo();
+});
+
+loadLogo();
+
+/* ------------------ Business Profile ------------------ */
+
+const BIZ_KEY = "gtj_business_profile";
+
+const bizName = document.getElementById("bizName");
+const bizAbn = document.getElementById("bizAbn");
+const bizPhone = document.getElementById("bizPhone");
+const bizEmail = document.getElementById("bizEmail");
+
+function loadBusinessProfile() {
+  let p = {};
+  try { p = JSON.parse(localStorage.getItem(BIZ_KEY)) || {}; } catch {}
+  bizName.value = p.name || "";
+  bizAbn.value = p.abn || "";
+  bizPhone.value = p.phone || "";
+  bizEmail.value = p.email || "";
+}
+
+function saveBusinessProfile() {
+  localStorage.setItem(BIZ_KEY, JSON.stringify({
+    name: bizName.value.trim(),
+    abn: bizAbn.value.trim(),
+    phone: bizPhone.value.trim(),
+    email: bizEmail.value.trim()
+  }));
+}
+
+[bizName, bizAbn, bizPhone, bizEmail].forEach(el =>
+  el.addEventListener("input", saveBusinessProfile)
+);
+
+document.addEventListener("DOMContentLoaded", loadBusinessProfile);
+
+/* ------------------ Submit UX ------------------ */
+
+const form = document.getElementById("proposalForm");
+const btn = document.getElementById("generateBtn");
+
+form.addEventListener("submit", () => {
+  btn.disabled = true;
+  btn.textContent = "Generating…";
+});
+
+const pageLoadTs = Date.now();
+let firstInteractionTracked = false;
+
+function trackClientEvent(name, data = {}) {
+  navigator.sendBeacon(
+    "/track",
+    JSON.stringify({ event: name, data })
+  );
+}
+
+["input", "change", "click"].forEach(evt => {
+  document.addEventListener(evt, () => {
+    if (firstInteractionTracked) return;
+    firstInteractionTracked = true;
+
+    trackClientEvent("first_interaction", {
+      delay_ms: Date.now() - pageLoadTs
+    });
+  }, { once: true });
+});
+
+
+window.addEventListener("pageshow", () => {
+  btn.disabled = false;
+  btn.textContent = "Write My Quote →";
+});
+</script>
+
+</body>
+</html>

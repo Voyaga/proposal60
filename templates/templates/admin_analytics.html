@@ -1,0 +1,116 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Analytics — Get The Job</title>
+  <link rel="icon" href="/static/favicon.ico">
+  <link rel="stylesheet" href="/static/admin_hud.css">
+
+</head>
+
+<body>
+
+  <div class="wrap">
+
+    <h1>Admin Analytics</h1>
+    <p class="subhead">Internal usage overview</p>
+
+    <!-- KPI cards -->
+    <div class="analytics-grid">
+      <div class="stat-card">
+        <span class="stat-label">Page views</span>
+        <span class="stat-value">{{ stats.page_views }}</span>
+      </div>
+
+      <div class="stat-card">
+        <span class="stat-label">Proposals generated</span>
+        <span class="stat-value">{{ stats.generates }}</span>
+      </div>
+
+      <div class="stat-card">
+        <span class="stat-label">PDF downloads</span>
+        <span class="stat-value">{{ stats.pdfs }}</span>
+      </div>
+    </div>
+
+    <!-- AI vs fallback -->
+    <div class="panel">
+      <h2>Generation mode</h2>
+      <div class="split">
+        <div>
+          <strong>AI used</strong><br>
+          {{ stats.ai }}
+        </div>
+        <div>
+          <strong>Fallback used</strong><br>
+          {{ stats.fallback }}
+        </div>
+      </div>
+    </div>
+
+    <!-- Funnel -->
+    <div class="panel">
+      <h2>Funnel</h2>
+      <ul class="funnel">
+        <li>Landing → App: <strong>{{ stats.funnel.landing_to_app }}%</strong></li>
+        <li>App → Generate: <strong>{{ stats.funnel.app_to_generate }}%</strong></li>
+        <li>Generate → PDF: <strong>{{ stats.funnel.generate_to_pdf }}%</strong></li>
+      </ul>
+    </div>
+
+    <!-- 🔥 NEW: Friction signals -->
+    <div class="panel">
+      <h2>User friction signals</h2>
+      <ul class="activity">
+        <li>
+          <strong>Hesitations (15s+ before first action):</strong>
+          {{ stats.hesitations | default(0) }}
+        </li>
+        <li>
+          <strong>Logo upload retries:</strong>
+          {{ stats.logo_retries | default(0) }}
+        </li>
+        <li>
+          <strong>Preview abandons (no PDF):</strong>
+          {{ stats.preview_abandons | default(0) }}
+        </li>
+      </ul>
+    </div>
+
+    <!-- Activity -->
+    <div class="panel">
+      <h2>Recent activity</h2>
+      <ul class="activity">
+        {% for item in recent %}
+          <li>{{ item }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+
+    <!-- Trades -->
+<div class="panel">
+  <h2>Trades selected</h2>
+
+  {% if stats.trades %}
+    <ul class="activity">
+      {% for trade, count in stats.trades.items() %}
+        <li>
+          <strong>{{ trade }}</strong>: {{ count }}
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="helper">No trade data yet.</p>
+  {% endif %}
+</div>
+
+
+    <footer class="site-footer">
+      Admin only • © Get The Job
+    </footer>
+
+  </div>
+
+</body>
+</html>
