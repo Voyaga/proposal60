@@ -1,0 +1,122 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Proposal Acceptance</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      background: #0f172a;
+      color: #e5e7eb;
+      padding: 40px;
+    }
+    .box {
+      max-width: 520px;
+      margin: auto;
+      background: #020617;
+      border-radius: 12px;
+      padding: 28px;
+    }
+    h1 { font-size: 22px; margin-bottom: 10px; }
+    .summary {
+      font-size: 14px;
+      color: #94a3b8;
+      margin-bottom: 20px;
+      white-space: pre-wrap;
+    }
+    input, textarea {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 12px;
+      border-radius: 8px;
+      border: none;
+      font-family: inherit;
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      border-radius: 10px;
+      border: none;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    .accept { background: #22c55e; }
+    .decline {
+      margin-top: 10px;
+      background: #334155;
+      color: #e5e7eb;
+    }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h1>Accept Proposal</h1>
+
+    <div class="summary">
+      {{ proposal.business_name }}
+    </div>
+
+    <form method="post">
+      <!-- REQUIRED: preserve acceptance token -->
+      <input type="hidden" name="t" value="{{ request.args.get('t') }}">
+
+      <input
+        name="name"
+        placeholder="Your full name"
+        required
+      >
+
+      <div id="decline-reason-wrap" style="display:none; margin-top:12px;">
+        <label for="decline_reason">
+          Reason for declining (optional but helpful)
+        </label>
+        <textarea
+          id="decline_reason"
+          name="decline_reason"
+          rows="4"
+          placeholder="Let us know what you'd like changed or addressed"
+        ></textarea>
+      </div>
+
+      <button class="accept" name="decision" value="accept">
+        Accept Proposal
+      </button>
+
+      <button
+        type="button"
+        class="decline"
+        id="decline-btn"
+      >
+        Decline
+      </button>
+      <button
+        type="submit"
+        name="decision"
+        value="decline"
+        id="decline-submit"
+        style="display:none; margin-top:10px;"
+        class="decline"
+      >
+        Confirm Decline
+      </button>
+
+
+    </form>
+  </div>
+
+<script>
+const declineBtn = document.getElementById("decline-btn");
+const declineSubmit = document.getElementById("decline-submit");
+const wrap = document.getElementById("decline-reason-wrap");
+
+declineBtn.addEventListener("click", () => {
+  wrap.style.display = "block";
+  declineSubmit.style.display = "block";
+  declineBtn.style.display = "none";
+});
+</script>
+
+
+</body>
+</html>

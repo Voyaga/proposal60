@@ -44,10 +44,20 @@
 
     <!-- LEFT: Recent proposals -->
     <aside class="sidebar">
+
+      {% if is_pro %}
+        <a href="/dashboard/proposals" class="btn secondary small sidebar-action">
+          Proposals Status
+        </a>
+      {% endif %}
+
       <h2>Recent proposals</h2>
       <p class="helper">Click a proposal to reuse it</p>
+
       <ul id="recentList"></ul>
     </aside>
+
+
 
     <!-- RIGHT: Main form -->
     <main class="content">
@@ -162,28 +172,6 @@
   Proposal generations sometimes may take a short while to generate
 </h2>
 
-
-
-
-{% if is_pro %}
-  <h4>You can cancel your subscription below</h4>
-  <div class="billing-wrap">
-    <form method="POST" action="/billing-portal" style="margin-top:14px;">
-      <input
-        type="email"
-        name="email"
-        required
-        placeholder="Email used at checkout"
-      >
-      <button class="btn secondary" style="margin-top:8px;">
-        Cancel subscription
-      </button>
-    </form>
-  </div>
-{% endif %}
-
-
-
   <footer class="site-footer">
   © Get The Job ·
   <a href="/terms">Terms</a> ·
@@ -201,6 +189,10 @@
 
 
 </div>
+
+<script>
+  window.__TRACK_TOKEN__ = "{{ request.cookies.get('gtj_track') }}";
+</script>
 
 <script>
 /* ------------------ Recents ------------------ */
@@ -371,11 +363,19 @@ const pageLoadTs = Date.now();
 let firstInteractionTracked = false;
 
 function trackClientEvent(name, data = {}) {
-  navigator.sendBeacon(
-    "/track",
-    JSON.stringify({ event: name, data })
-  );
+  if (!window.__TRACK_TOKEN__) return;
+
+  fetch("/track", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      token: window.__TRACK_TOKEN__,
+      event: name,
+      data
+    })
+  });
 }
+
 
 ["input", "change", "click"].forEach(evt => {
   document.addEventListener(evt, () => {

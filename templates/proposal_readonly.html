@@ -1,0 +1,85 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Proposal</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      background: #020617;
+      color: #e5e7eb;
+      padding: 40px;
+    }
+    .box {
+      max-width: 720px;
+      margin: auto;
+    }
+    h1 {
+      font-size: 22px;
+      margin-bottom: 10px;
+    }
+    .meta {
+      font-size: 14px;
+      color: #94a3b8;
+      margin-bottom: 24px;
+    }
+    .label {
+      font-size: 13px;
+      color: #64748b;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+    .job {
+      white-space: pre-wrap;
+      background: #020617;
+      border: 1px solid #1e293b;
+      border-radius: 10px;
+      padding: 16px;
+      font-size: 14px;
+    }
+    .status.accepted { color: #22c55e; }
+    .status.pending { color: #eab308; }
+    .status.declined { color: #ef4444; }
+  </style>
+</head>
+<body>
+
+  <div class="box">
+    <h1>Proposal</h1>
+
+    <div class="meta">
+      <strong>{{ proposal.business_name }}</strong><br>
+      Status:
+      <span class="status {{ proposal.status }}">
+        {{ proposal.status|capitalize }}
+      </span><br>
+
+      {% if proposal.status == "accepted" %}
+        Accepted by {{ proposal.responded_name }}<br>
+        on {{ proposal.responded_at }}
+      {% elif proposal.status == "declined" %}
+        Proposal declined
+      {% endif %}
+
+    </div>
+
+    {% if proposal.status == "declined" and proposal.decline_reason %}
+        <div style="margin-top:20px; padding:12px; border-left:4px solid #dc2626; background:#fef2f2;">
+            <strong>Client declined with reason:</strong>
+            <p style="margin-top:8px; white-space:pre-wrap;">
+                {{ proposal.decline_reason }}
+            </p>
+        </div>
+    {% endif %}
+
+
+    <div class="label">Job details</div>
+    <div class="job">
+      {{ proposal.proposal_text }}
+    </div>
+  </div>
+
+</body>
+</html>

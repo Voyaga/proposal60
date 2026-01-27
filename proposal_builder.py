@@ -1,7 +1,6 @@
-from reportlab.lib.pagesizes import A4
-from reportlab.pdfgen import canvas
-from reportlab.lib.units import mm
-import textwrap
+# NOTE:
+# PDF generation is handled exclusively in app.py (/pdf route).
+# Do NOT add PDF output here — this module is text-only by design.
 
 from ai_engine import generate_proposal_ai
 
@@ -122,7 +121,13 @@ Clearly describe the work, scope, and expectations without marketing or embellis
 # Placement: function build_proposal_text (entire function)
 
 def build_proposal_text(data: dict) -> str:
-    """Primary proposal builder: AI first, fallback if unavailable."""
+    """Primary proposal builder: AI with cache, fallback if unavailable."""
+
+    from db import (
+        get_db,
+        ai_input_hash,
+        utc_now_iso,
+    )
 
     trade = (data.get("trade") or "general").strip().lower()
     data["trade_profile"] = TRADE_PROFILES.get(
@@ -130,8 +135,76 @@ def build_proposal_text(data: dict) -> str:
         TRADE_PROFILES["general"]
     )
 
+    # ------------------------------
+    # AI CACHE LOOKUP
+    # ------------------------------
+    cache_key = ai_input_hash(data)
+    now = utc_now_iso()
+
+    conn = get_db()
+
+    # Opportunistic cache eviction
+    try:
+        from db import evict_old_ai_cache
+        evict_old_ai_cache(conn, days=30)
+    except Exception:
+        pass
+
+    row = conn.execute(
+        """
+        SELECT proposal_text
+        FROM ai_proposal_cache
+        WHERE input_hash = ?
+        """,
+        (cache_key,)
+    ).fetchone()
+
+    if row:
+        # Update last_used_at (LRU hygiene)
+        conn.execute(
+            """
+            UPDATE ai_proposal_cache
+            SET last_used_at = ?
+            WHERE input_hash = ?
+            """,
+            (now, cache_key)
+        )
+        conn.commit()
+        conn.close()
+
+        # Analytics hook (cache hit)
+        try:
+            from app import track
+            track("ai_cache_hit", trade=trade)
+        except Exception:
+            pass
+
+        return row["proposal_text"]
+
+    conn.close()
+
+    # ------------------------------
+    # AI GENERATION (CACHE MISS)
+    # ------------------------------
     try:
         text = generate_proposal_ai(data)
+
+        conn = get_db()
+        conn.execute(
+            """
+            INSERT INTO ai_proposal_cache (
+                input_hash,
+                proposal_text,
+                trade,
+                created_at,
+                last_used_at
+            )
+            VALUES (?, ?, ?, ?, ?)
+            """,
+            (cache_key, text, trade, now, now)
+        )
+        conn.commit()
+        conn.close()
 
         # Analytics hook (AI path)
         try:
@@ -156,6 +229,7 @@ def build_proposal_text(data: dict) -> str:
             pass
 
         return build_fallback_proposal(data)
+
 
 
 
@@ -222,7 +296,7 @@ def build_fallback_proposal(data: dict) -> str:
     lines.append(f"{section_index}. Acceptance / Next Steps")
     lines.append(
         "Please review the details above and contact us by phone or email "
-        "to confirm acceptance or discuss any questions."
+        "to confirm acceptance or discuss any questions. If you have any modifications please feel free to contact us"
     )
     lines.append("")
     lines.append("Kind regards,")
@@ -233,44 +307,4 @@ def build_fallback_proposal(data: dict) -> str:
 
 
 
-# ------------------------------
-# PDF generator (FIXED WRAPPING)
-# ------------------------------
-def generate_pdf(proposal_text: str, footer_lines: list[str] | None = None):
-    """
-    Generate a wrapped, professional PDF.
-    FIXES text running off the page.
-    """
-    buffer = bytes()
-    c = canvas.Canvas("proposal.pdf", pagesize=A4)
 
-    width, height = A4
-    x_margin = 25 * mm
-    y_margin = 25 * mm
-    max_width_chars = 95  # controls wrapping
-
-    y = height - y_margin
-    c.setFont("Helvetica", 10)
-
-    for paragraph in proposal_text.split("\n"):
-        wrapped = textwrap.wrap(paragraph, max_width_chars) or [""]
-
-        for line in wrapped:
-            if y < y_margin:
-                c.showPage()
-                c.setFont("Helvetica", 10)
-                y = height - y_margin
-
-            c.drawString(x_margin, y, line)
-            y -= 14
-
-    # Footer
-    if footer_lines:
-        c.setFont("Helvetica", 9)
-        y = y_margin - 10
-        for line in footer_lines:
-            c.drawString(x_margin, y, line)
-            y -= 12
-
-    c.save()
-    return "proposal.pdf"

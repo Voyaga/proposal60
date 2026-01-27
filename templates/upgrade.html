@@ -36,11 +36,16 @@
 
       <p class="helper">Cancel anytime. No lock-in.</p>
 
-       <form method="POST" action="/checkout">
-        <button class="btn hero-cta" style="width:100%;">
-          Upgrade to Pro
-        </button>
-      </form>
+       <form
+          method="POST"
+          action="/checkout"
+          onsubmit="trackClientEvent('upgrade_checkout_click')"
+        >
+          <button class="btn hero-cta" style="width:100%;">
+            Upgrade to Pro
+          </button>
+        </form>
+
 
 
       <ul class="feature-list" style="text-align:left; max-width:360px; margin:0 auto 24px;">
@@ -136,20 +141,49 @@
 
 <script>
 (function () {
-  // Create a stable device id for this browser
-  if (!localStorage.getItem("gtj_device_id")) {
-    if (crypto && crypto.randomUUID) {
-      localStorage.setItem("gtj_device_id", crypto.randomUUID());
-    } else {
-      localStorage.setItem("gtj_device_id", Date.now() + "-" + Math.random());
-    }
+  var DEVICE_KEY = "gtj_device_id";
+
+  // --- Device ID ---
+  function generateDeviceId() {
+    try {
+      if (window.crypto && crypto.randomUUID) {
+        return crypto.randomUUID();
+      }
+    } catch (e) {}
+    return Date.now() + "-" + Math.random().toString(36).slice(2);
   }
 
-  // Push it into the hidden form field
+  function getDeviceId() {
+    var id = localStorage.getItem(DEVICE_KEY);
+    if (!id) {
+      id = generateDeviceId();
+      localStorage.setItem(DEVICE_KEY, id);
+    }
+    return id;
+  }
+
+  // Expose globally (optional but useful)
+  window.getGTJDeviceId = getDeviceId;
+
+  // Populate hidden form field if present
   var el = document.getElementById("device_id");
-  if (el) el.value = localStorage.getItem("gtj_device_id");
+  if (el) el.value = getDeviceId();
+
+  // --- Analytics ---
+  window.trackClientEvent = function (name, data = {}) {
+    data.device_id = getDeviceId();
+
+    navigator.sendBeacon(
+      "/track",
+      JSON.stringify({
+        event: name,
+        data: data
+      })
+    );
+  };
 })();
 </script>
+
 
 
 </body>

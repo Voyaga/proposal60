@@ -185,7 +185,8 @@ Rules:
 - Pricing must reflect the provided price or state that pricing is to be confirmed.
 - Acceptance / Next Steps must NOT request a signature.
 - Do NOT ask the client to sign or return the proposal.
-- Acceptance should be described as confirming via phone or email.
+- - Acceptance must instruct the client to confirm by clicking the proposal acceptance link below.
+- Do NOT mention phone, email, or signatures.
 - Write as a real Australian trade business quoting real work.
 """.strip()
 
