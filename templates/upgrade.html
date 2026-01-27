@@ -7,8 +7,6 @@
   <meta name="description" content="Unlimited professional proposals and PDF exports." />
   <link rel="icon" href="/static/favicon.ico">
   <link rel="stylesheet" href="/static/style2.css">
-
-
 </head>
 
 <body>
@@ -36,17 +34,15 @@
 
       <p class="helper">Cancel anytime. No lock-in.</p>
 
-       <form
-          method="POST"
-          action="/checkout"
-          onsubmit="trackClientEvent('upgrade_checkout_click')"
-        >
-          <button class="btn hero-cta" style="width:100%;">
-            Upgrade to Pro
-          </button>
-        </form>
-
-
+      <form
+        method="POST"
+        action="/checkout"
+        onsubmit="trackClientEvent('upgrade_checkout_click')"
+      >
+        <button class="btn hero-cta" style="width:100%;">
+          Upgrade to Pro
+        </button>
+      </form>
 
       <ul class="feature-list" style="text-align:left; max-width:360px; margin:0 auto 24px;">
         <li>Unlimited proposals</li>
@@ -57,8 +53,6 @@
         <li>Copy and paste into your preferred editor</li>
         <li>Pro subscriptions are limited to two devices.</li>
       </ul>
-
-
 
       <p class="fineprint">
         Secure checkout powered by Stripe
@@ -73,8 +67,6 @@
       Restore Pro access using the email you paid with.
     </p>
 
-
-
     {% if restore_error %}
       <div class="notice">
         {{ restore_error }}
@@ -88,7 +80,8 @@
       </div>
     {% endif %}
 
-    <form method="POST" action="/restore-pro" style="max-width:420px;">
+    <!-- Magic link request for restore -->
+    <form method="POST" action="/request-magic-link" style="max-width:420px;">
       <label>Email used at checkout</label>
       <input
         type="email"
@@ -96,32 +89,43 @@
         required
         placeholder="you@example.com"
       >
+
+      <input type="hidden" name="purpose" value="restore_pro">
       <input type="hidden" name="device_id" id="device_id">
 
-
       <button class="btn secondary" style="margin-top:14px;">
-        Restore Pro Access
+        Email me a secure link
       </button>
+
+      <p class="helper" style="margin-top:8px;">
+        We’ll email you a secure link. No password required.
+      </p>
     </form>
 
     {% if is_pro %}
-  <div class="billing-wrap">
-    <form method="POST" action="/billing-portal" style="margin-top:14px;">
-      <input
-        type="email"
-        name="email"
-        required
-        placeholder="Email used at checkout"
-      >
-      <button class="btn secondary" style="margin-top:8px;">
-        Cancel subscription
-      </button>
-    </form>
-  </div>
-{% endif %}
+      <div class="billing-wrap">
+        <!-- Magic link request for billing portal -->
+        <form method="POST" action="/request-magic-link" style="margin-top:24px;">
+          <label>Email used at checkout</label>
+          <input
+            type="email"
+            name="email"
+            required
+            placeholder="you@example.com"
+          >
 
+          <input type="hidden" name="purpose" value="billing">
 
+          <button class="btn secondary" style="margin-top:8px;">
+            Email me a secure billing link
+          </button>
 
+          <p class="helper" style="margin-top:8px;">
+            We’ll email you a secure link to manage or cancel your subscription.
+          </p>
+        </form>
+      </div>
+    {% endif %}
 
     <!-- ===== Back ===== -->
     <div class="actions" style="justify-content:center; margin-top:40px;">
@@ -131,11 +135,11 @@
     </div>
 
     <footer class="site-footer">
-  © Get The Job ·
-  <a href="/terms">Terms</a> ·
-  <a href="/privacy">Privacy</a> ·
-  <a href="/">Home</a>
-</footer>
+      © Get The Job ·
+      <a href="/terms">Terms</a> ·
+      <a href="/privacy">Privacy</a> ·
+      <a href="/">Home</a>
+    </footer>
 
   </div>
 
@@ -143,7 +147,6 @@
 (function () {
   var DEVICE_KEY = "gtj_device_id";
 
-  // --- Device ID ---
   function generateDeviceId() {
     try {
       if (window.crypto && crypto.randomUUID) {
@@ -162,14 +165,11 @@
     return id;
   }
 
-  // Expose globally (optional but useful)
   window.getGTJDeviceId = getDeviceId;
 
-  // Populate hidden form field if present
   var el = document.getElementById("device_id");
   if (el) el.value = getDeviceId();
 
-  // --- Analytics ---
   window.trackClientEvent = function (name, data = {}) {
     data.device_id = getDeviceId();
 
@@ -183,8 +183,6 @@
   };
 })();
 </script>
-
-
 
 </body>
 </html>
