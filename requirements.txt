@@ -4,4 +4,5 @@ python-dotenv>=1.0.1
 gunicorn>=21.2.0
 reportlab>=4.0.0
 stripe>=8.0.0
-
+resend
+sentry-sdk
