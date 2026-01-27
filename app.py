@@ -510,14 +510,15 @@ def preview():
 
 @app.get("/upgrade")
 def upgrade():
-    track("page_view", page="upgrade")
+    verified_email = get_verified_email("restore_pro") is not None
+
     return render_template(
         "upgrade.html",
         restore_error=None,
         restored=False,
-        is_pro=is_pro_user()
+        is_pro=is_pro_user(),
+        verified_email=verified_email,
     )
-
 
 @app.get("/privacy")
 def privacy():
