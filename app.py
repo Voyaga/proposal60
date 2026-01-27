@@ -42,8 +42,9 @@ if not resend.api_key:
 
 MAIL_FROM = os.environ.get(
     "MAIL_FROM",
-    "no-reply@proposal60.com"
+    "Get The Job <onboarding@resend.dev>"
 )
+
 
 _magic_email_hits = defaultdict(deque)
 MAGIC_EMAIL_WINDOW = 15 * 60  # 15 minutes
@@ -456,9 +457,7 @@ def verify_magic_link():
     if not email or not purpose:
         abort(400)
 
-    resp = redirect(
-        "/billing-portal" if purpose == "billing" else "/restore-pro"
-    )
+    resp = redirect("/upgrade")
 
     resp.set_cookie(
         VERIFIED_EMAIL_COOKIE,
