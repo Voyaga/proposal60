@@ -946,7 +946,6 @@ def pdf():
     # --------------------
     proposal_text = request.form.get("proposal_text", "").strip()
 
-    # Strip preview-injected business details from body
     clean_lines = []
     for line in proposal_text.splitlines():
         if line.strip() == "—":
@@ -972,56 +971,6 @@ def pdf():
     _reject_if_too_large("business_name", business_name, 200)
     _reject_if_too_large("biz_footer", footer_text, 200)
 
-
-    # ==================================================
-    # CREATE PROPOSAL RECORD (BEFORE PDF RENDER)
-    # ==================================================
-
-    proposal_id = new_proposal_id()
-
-    # --- acceptance token ---
-    accept_token = secrets.token_urlsafe(32)
-    accept_expires_at = (
-            datetime.utcnow() + timedelta(days=14)
-    ).isoformat()
-
-    proposal_hash = compute_proposal_hash(
-        proposal_text,
-        business_name,
-    )
-
-    accept_url = (
-        f"{BASE_URL.rstrip('/')}"
-        f"/accept/{proposal_id}?t={accept_token}"
-    )
-
-    conn = get_db()
-    conn.execute("""
-        INSERT INTO proposals (
-            id,
-            created_at,
-            business_name,
-            client_email,
-            proposal_text,
-            proposal_hash,
-            status,
-            accept_token,
-            accept_expires_at
-        ) VALUES (?, ?, ?, ?, ?, ?, 'pending', ?, ?)
-    """, (
-        proposal_id,
-        utc_now_iso(),
-        business_name,
-        request.form.get("client_email", "").strip(),
-        proposal_text,
-        proposal_hash,
-        accept_token,
-        accept_expires_at
-    ))
-
-    conn.commit()
-    conn.close()
-
     # --------------------
     # Canvas setup
     # --------------------
@@ -1039,8 +988,8 @@ def pdf():
     # --------------------
     # Gradient header
     # --------------------
-    GRADIENT_START = HexColor("#1e5eff")  # brand blue
-    GRADIENT_END   = HexColor("#22c55e")  # brand green
+    GRADIENT_START = HexColor("#1e5eff")
+    GRADIENT_END = HexColor("#22c55e")
 
     def draw_gradient_header(c, x, y, width, height, steps=100):
         for i in range(steps):
@@ -1066,29 +1015,27 @@ def pdf():
         width=width,
         height=header_height
     )
-    # Logo — aligned with body text margin
+
+    # Logo
     if logo_data.startswith("data:image"):
         try:
             _, encoded = logo_data.split(",", 1)
             image_bytes = base64.b64decode(encoded)
             image = ImageReader(io.BytesIO(image_bytes))
 
-            logo_h = 50
-            logo_w = 120
-
             c.drawImage(
                 image,
                 margin_x,
-                height - header_height + (header_height - logo_h) / 2,
-                width=logo_w,
-                height=logo_h,
+                height - header_height + 10,
+                width=120,
+                height=50,
                 preserveAspectRatio=True,
                 mask="auto",
             )
         except Exception:
             pass
 
-    # Business name — centered
+    # Business name
     if business_name:
         c.setFillColor("white")
         c.setFont("Helvetica-Bold", 20)
@@ -1098,7 +1045,7 @@ def pdf():
             business_name
         )
 
-    # Proposal title — centered below business name
+    # Proposal title
     c.setFont("Helvetica-Bold", 13)
     c.drawCentredString(
         width / 2,
@@ -1111,51 +1058,18 @@ def pdf():
     c.setFillColor(black)
     c.setFont("Helvetica", 11)
 
-    biz_footer_parts = []
-
-    if business_name:
-        biz_footer_parts.append(business_name)
-
-    if proposal_text:
-        pass  # leave body alone
-
-    # Pull business details from proposal_text OR better: pass separately
-    # If you already have them separately, use those variables instead
-
-    # Example using request.form (recommended)
-    abn = request.form.get("abn", "").strip()
-    phone = request.form.get("phone", "").strip()
-    email = request.form.get("email", "").strip()
-
-    if abn:
-        biz_footer_parts.append(f"ABN: {abn}")
-    if phone:
-        biz_footer_parts.append(f"Phone: {phone}")
-    if email:
-        biz_footer_parts.append(f"Email: {email}")
-
-    FOOTER_TEXT = footer_text
-
-
-    # print("FOOTER:", request.form.get("biz_footer"))
-
-
-    # --- BODY TEXT ---
+    # --------------------
+    # Footer
+    # --------------------
     def draw_footer():
         c.setStrokeColorRGB(0.85, 0.85, 0.85)
         c.line(margin_x, footer_height + 10, width - margin_x, footer_height + 10)
 
         c.setFont("Helvetica", 9)
         c.setFillColorRGB(0.4, 0.4, 0.4)
-
-        c.drawCentredString(
-            width / 2,
-            footer_height - 2,
-            FOOTER_TEXT
-        )
+        c.drawCentredString(width / 2, footer_height - 2, footer_text)
 
     from reportlab.lib.utils import simpleSplit
-
     max_text_width = width - (margin_x * 2)
 
     for paragraph in proposal_text.splitlines():
@@ -1170,7 +1084,6 @@ def pdf():
             if y < footer_height + 30:
                 draw_footer()
                 c.showPage()
-
                 c.setFont("Helvetica", 11)
                 c.setFillColor(black)
                 y = height - header_height - 30
@@ -1178,41 +1091,7 @@ def pdf():
             c.drawString(margin_x, y, line)
             y -= line_height
 
-    # --------------------
-    # ACCEPT PROPOSAL LINK
-    # --------------------
-    if y < footer_height + 60:
-        draw_footer()
-        c.showPage()
-        c.setFont("Helvetica", 11)
-        c.setFillColor(black)
-        y = height - header_height - 30
-
-    c.setFont("Helvetica-Bold", 12)
-    c.drawCentredString(
-        width / 2,
-        y,
-        "Accept this proposal"
-    )
-    y -= 18
-
-    link_text = "Click here to accept this proposal"
-    text_width = c.stringWidth(link_text, "Helvetica", 11)
-    x = (width - text_width) / 2
-
-    c.setFont("Helvetica", 11)
-    c.drawString(x, y, link_text)
-
-    c.linkURL(
-        accept_url,
-        (x, y - 2, x + text_width, y + 12),
-        relative=0
-    )
-
-    y -= 30
-
     draw_footer()
-
     c.save()
     buffer.seek(0)
 
@@ -1222,6 +1101,7 @@ def pdf():
         as_attachment=True,
         download_name="proposal.pdf",
     )
+
 
 STRIPE_WEBHOOK_SECRET = os.environ.get("STRIPE_WEBHOOK_SECRET")
 
